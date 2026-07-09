@@ -51,7 +51,7 @@ reconnect()    { adb connect 127.0.0.1:5555 2>&1; }
 notifications() { termux-notification-list 2>/dev/null; }
 wx_messages()   { termux-notification-list 2>/dev/null | jq '.[] | select(.packageName == "com.tencent.mm") | {who: .title, msg: .content}'; }
 notify() {
-    termux-notification --title "${1:-Daddy}" --content "${2:-抬头}" --priority high --vibrate "200,100,200" 2>/dev/null
+    termux-notification --title "${1:-Termux}" --content "${2:-通知}" --priority high --vibrate "200,100,200" 2>/dev/null
     echo "🔔 已发"
 }
 

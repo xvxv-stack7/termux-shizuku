@@ -1,10 +1,10 @@
 # termux-shizuku
 
-**AI Agent 免 Root 免电脑，永久控制你的 Android 手机。**
+**让 AI Agent 免 Root、免电脑、永久控制 Android 手机。**
 
-电脑上 AI Agent 控制手机需要各种插件，还不稳定——手机上传统方案要么 root，要么插着电脑开 ADB，没人会随身带根线。这个方案：一台手机、不用 root、不插电脑、不依赖 WiFi，AI Agent 随时随地控制你手机的一切。
+## 一句话
 
-无线调试做一次性跳板，adb tcpip 5555 伪装成 USB 模式，127.0.0.1 回环自连。Shizuku 做引擎。
+传统上，AI Agent 控制手机要么 root，要么 USB 连着电脑——没人随身带根线。本方案用无线调试做一次性跳板，把 adbd 切到固定 TCP 端口后通过 127.0.0.1 回环自连。之后关 WiFi、开飞行模式，连接不中断。单台手机、零外设、不依赖任何网络。
 
 ## 原理
 
@@ -112,14 +112,14 @@ MIT
 |------|------|
 | 屏幕亮灭 | dumpsys power → mWakefulness |
 | 前台 app | dumpsys activity → topResumedActivity |
-| 加速度（是否在手里） | termux-sensor Accelerometer |
-| 环境光（暗处=被窝） | termux-sensor Ambient Light |
+| 加速度（设备运动检测） | termux-sensor Accelerometer |
+| 环境光（暗处/口袋检测） | termux-sensor Ambient Light |
 | 步数 | termux-sensor pedometer |
 | 电池/温度 | dumpsys battery |
 | 手机信号 | dumpsys telephony.registry |
 | WiFi SSID | dumpsys wifi → mWifiInfo |
 | 蓝牙设备列表 | dumpsys bluetooth_manager → 所有配对设备+连接状态 |
-| 手表在线检测 | 查 Amazfit GTS 3 的 BLE 连接 |
+| BLE 设备检测 | dumpsys bluetooth_manager → 已连接设备 |
 | 应用使用时间线 | dumpsys usagestats |
 | 使用记录 | 每个 app 的 `used=+XdXh` 时间戳 |
 
@@ -145,7 +145,7 @@ MIT
 | 最近照片 | ls /sdcard/DCIM/Camera |
 | 内存/存储 | dumpsys meminfo + df |
 | 运行时间 | cat /proc/uptime |
-| 通讯录含钉钉号 | ☑️ 大量钉钉 DING 消息联系人 |
+| 联系人列表 | content query contacts/data/phones |
 
 ### ❌ 受限
 | 能力 | 原因 |

@@ -6,7 +6,7 @@
 三条线控制手机，不依赖 WiFi，不需电脑，不需 root。
 
 ### 前提
-- USB 调试已打开（开发者选项）
+- 无线调试已打开（开发者选项）
 - 已跑过 bootstrap.sh（adb tcpip 5555 + Shizuku 启动）
 - 每次重启后重跑 bootstrap.sh（或开机自启脚本）
 
@@ -25,9 +25,9 @@ adb -s 127.0.0.1:5555 shell 命令
 ### 感知
 
 ```bash
-# 她在不在手机旁边
+# 屏幕状态
 rish -c 'dumpsys power | grep mWakefulness'  # Awake=亮屏, Asleep=灭屏
-timeout 3 termux-sensor -s "Accelerometer" -n 1  # 有波动=在手里
+timeout 3 termux-sensor -s "Accelerometer" -n 1  # 检测设备是否在运动
 
 # 当前前台 app
 rish -c 'dumpsys activity activities | grep topResumedActivity'
@@ -35,7 +35,7 @@ rish -c 'dumpsys activity activities | grep topResumedActivity'
 # 电池
 rish -c 'dumpsys battery | grep -E "level|temperature"'
 
-# 环境光（<10=被窝/口袋）
+# 环境光（<10=暗处/口袋）
 timeout 3 termux-sensor -s "Ambient Light" -n 1
 
 # 步数
@@ -115,26 +115,26 @@ rish -c 'content query --uri content://settings/system/KEY'
 rish -c 'content query --uri content://settings/global/KEY'
 ```
 
-### 组合技示例
+### 组合示例
 
 ```bash
-# 检测她是否在用手机
+# 屏幕状态 + 前台应用检测
 SCREEN=$(rish -c 'dumpsys power | grep mWakefulness')
 if echo "$SCREEN" | grep -q "Awake"; then
   APP=$(rish -c 'dumpsys activity activities | grep topResumedActivity')
-  echo "正在用: $APP"
+  echo "前台: $APP"
 fi
 
-# 远程骚扰套餐
-termux-notification --title "Daddy" --content "十秒内回消息" --priority max --vibrate "500,100" --sound
-sleep 10
-rish -c 'input keyevent 85'  # 暂停音乐
+# 通知 + 媒体控制（自动化示例）
+termux-notification --title "提醒" --content "十分钟后会议" --priority high --vibrate "500,100" --sound
+sleep 5
+rish -c 'input keyevent 85'  # 暂停媒体播放
 
-# 日历定时提醒
+# 日历定时任务
 TIMESTAMP=$(date -d "tomorrow 10:00" +%s%3N)
 ENDTIME=$((TIMESTAMP + 3600000))
 rish -c "content insert --uri content://com.android.calendar/events \
-  --bind title:s:'Daddy想你了' \
+  --bind title:s:'会议提醒' \
   --bind calendar_id:i:1 \
   --bind dtstart:l:$TIMESTAMP \
   --bind dtend:l:$ENDTIME \
