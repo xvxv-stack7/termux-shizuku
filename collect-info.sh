@@ -1,8 +1,11 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ============================================
-# termux-shizuku 诊断报告
-# 复制全部输出，发 issue 即可
+# 诊断报告（已过滤敏感信息）
+# bash collect-info.sh | 全选复制 → 发 issue
 # ============================================
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+[ -f "$SCRIPT_DIR/config.sh" ] && source "$SCRIPT_DIR/config.sh"
 
 echo "========== 系统 =========="
 echo "Brand=$(getprop ro.product.brand 2>/dev/null || echo ?)"
@@ -17,43 +20,49 @@ echo "Version=$TERMUX_VERSION"
 
 echo ""
 echo "========== ADB =========="
-adb devices 2>/dev/null | grep -v "List" | sed 's/^/Device=/'
+echo "Command=$(command -v adb 2>/dev/null && echo ok || echo missing)"
+adb devices 2>/dev/null | grep -v "List" | while read line; do
+    echo "Device=$line"
+done
+echo "Shell=$(adb shell whoami 2>/dev/null && echo ok || echo fail)"
 
 echo ""
 echo "========== Shizuku =========="
 echo "Rish=$(command -v rish 2>/dev/null && echo ok || echo missing)"
-rish -c 'whoami' 2>/dev/null && echo "Shell=ok" || echo "Shell=fail"
+echo "Shell=$(rish -c 'whoami' 2>/dev/null && echo ok || echo fail)"
+echo "APK=$( [ -f "/storage/emulated/0/Android/data/moe.shizuku.privileged.api/start.sh" ] && echo installed || echo not_found)"
 
 echo ""
 echo "========== Termux 插件 =========="
-pkg list-installed 2>/dev/null | grep -q "termux-api" && echo "API=installed" || echo "API=missing"
-timeout 2 termux-sensor -l 2>/dev/null >/dev/null && echo "Sensor=ok" || echo "Sensor=fail"
-[ -d ~/.termux/boot ] && echo "Boot=configured" || echo "Boot=no"
+echo "API=$(pkg list-installed 2>/dev/null | grep -q "termux-api" && echo installed || echo missing)"
+echo "Sensor=$(timeout 2 termux-sensor -l 2>/dev/null >/dev/null && echo ok || echo fail)"
+echo "Boot=$( [ -d ~/.termux/boot ] && echo configured || echo no)"
 
 echo ""
 echo "========== 权限 =========="
-termux-notification --id 99999 --title "test" --content "." 2>/dev/null && echo "Notification=ok" || echo "Notification=fail"
+echo "Notification=$(termux-notification --id 99999 --title "." --content "." 2>/dev/null && echo ok || echo fail)"
 termux-notification-remove 99999 2>/dev/null
-[ -d /sdcard ] && echo "Storage=ok" || echo "Storage=fail"
+echo "Storage=$( [ -d /sdcard ] && echo ok || echo fail)"
 
 echo ""
 echo "========== 网络 =========="
-ping -c 1 -W 3 223.5.5.5 >/dev/null 2>&1 && echo "Network=ok" || echo "Network=fail"
+echo "Network=$(ping -c 1 -W 3 223.5.5.5 >/dev/null 2>&1 && echo ok || echo fail)"
+echo "DNS=$(ping -c 1 -W 3 registry.npmmirror.com >/dev/null 2>&1 && echo ok || echo fail)"
 
 echo ""
 echo "========== 后台 =========="
-termux-wake-lock 2>/dev/null && echo "WakeLock=ok" || echo "WakeLock=fail"
+echo "WakeLock=$(termux-wake-lock 2>/dev/null && echo ok || echo fail)"
 termux-wake-unlock 2>/dev/null
 
 echo ""
 echo "========== 技能 =========="
-echo "Skills=$( [ -f ~/skills.sh ] && wc -l < ~/skills.sh || echo 0 )"
-echo "ADBSkills=$( [ -f ~/adb-skills.sh ] && wc -l < ~/adb-skills.sh || echo 0 )"
+echo "Skills=$( [ -f ~/skills.sh ] && wc -l < ~/skills.sh || echo 0)"
+echo "ADBSkills=$( [ -f ~/adb-skills.sh ] && wc -l < ~/adb-skills.sh || echo 0)"
 
 echo ""
 echo "========== 仓库 =========="
-echo "Commit=$(cd "$(dirname "$0")" && git log --oneline -1 2>/dev/null || echo not_git)"
+echo "Commit=$(cd "$SCRIPT_DIR" && git log --oneline -1 2>/dev/null || echo not_git)"
 
 echo ""
-echo "--- 以上全选复制发 issue ---"
+echo "--- 以上全选复制 → 发 issue ---"
 echo "https://gitee.com/xvxv663/termux-shizuku/issues"
