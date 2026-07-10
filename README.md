@@ -49,6 +49,8 @@ pkg install android-tools
 bash bootstrap.sh
 ```
 
+**跑之前先诊断：** `bash doctor.sh`，一键查 ADB / Shizuku / 权限 / 品牌适配，哪里没配一目了然。
+
 ## 开机自启
 
 ```bash
