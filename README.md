@@ -2,6 +2,8 @@
 
 **让 AI 免 Root、免电脑、永久控制 Android 手机。**
 
+> 🚧 更新频繁，遇问题先跑 `bash doctor.sh`。
+
 [![Gitee](https://img.shields.io/badge/Gitee-国内下载-c71d23?logo=gitee)](https://gitee.com/xvxv663/termux-shizuku)
 [![GitHub](https://img.shields.io/badge/GitHub-国际版-181717?logo=github)](https://github.com/xvxv-stack7/termux-shizuku)
 
