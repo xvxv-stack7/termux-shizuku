@@ -3,13 +3,10 @@
 # 一键反馈——自动发到 Gitee Issues
 # ============================================
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-GITEE_TOKEN=""
-for f in "$HOME/.gitee-token" "$SCRIPT_DIR/.gitee-token"; do
-    [ -f "$f" ] && GITEE_TOKEN=$(head -1 "$f") && break
-done
+GITEE_TOKEN="已移除_TOKEN"
 REPO_OWNER="xvxv663"
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_NAME="termux-shizuku"
 
 TITLE="[自动反馈] $(getprop ro.product.brand 2>/dev/null || echo ?) $(getprop ro.product.model 2>/dev/null || echo ?) · $(date '+%m-%d %H:%M')"
@@ -38,15 +35,6 @@ termux-notification-remove 99999 2>/dev/null
 
 add "---"
 add "> 🤖 自动反馈 · $(date '+%Y-%m-%d %H:%M:%S')"
-
-if [ -z "$GITEE_TOKEN" ]; then
-    echo ""
-    echo "未配置 token，请复制下面内容手动发到："
-    echo "https://gitee.com/$REPO_OWNER/$REPO_NAME/issues"
-    echo ""
-    echo "$BODY"
-    exit 0
-fi
 
 echo ""
 echo "正在发送反馈..."
