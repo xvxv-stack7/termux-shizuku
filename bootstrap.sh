@@ -14,6 +14,17 @@ log()  { echo -e "${GREEN}[✓]${NC} $1"; }
 warn() { echo -e "${YELLOW}[!]${NC} $1"; }
 err()  { echo -e "${RED}[✗]${NC} $1"; }
 
+# 先诊断
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/doctor.sh" ]; then
+    bash "$SCRIPT_DIR/doctor.sh"
+    if [ $? -eq 2 ]; then
+        echo "[!] 环境有致命问题，请先修复再继续"
+        exit 1
+    fi
+fi
+
+echo ""
 echo "=========================================="
 echo "  termux-shizuku / 一键启动"
 echo "  USB 调试 + adb TCP 5555 方案"

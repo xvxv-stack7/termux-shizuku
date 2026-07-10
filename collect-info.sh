@@ -1,75 +1,59 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ============================================
-# termux-shizuku 信息收集
-# 跑一遍，把输出复制发 issue
+# termux-shizuku 诊断报告
+# 复制全部输出，发 issue 即可
 # ============================================
 
-echo "=========================================="
-echo "  termux-shizuku 诊断报告"
-echo "  $(date '+%Y-%m-%d %H:%M:%S')"
-echo "=========================================="
-echo ""
-
-# 系统
-echo "--- 系统 ---"
-echo "brand=$(getprop ro.product.brand 2>/dev/null || echo unknown)"
-echo "model=$(getprop ro.product.model 2>/dev/null || echo unknown)"
-echo "android=$(getprop ro.build.version.release 2>/dev/null || echo unknown)"
-echo "sdk=$(getprop ro.build.version.sdk 2>/dev/null || echo unknown)"
-echo "cpu=$(uname -m)"
-echo "termux=$TERMUX_VERSION"
-
-# ADB
-echo ""
-echo "--- ADB ---"
-echo "adb=$(command -v adb 2>/dev/null && echo ok || echo missing)"
-adb devices 2>/dev/null | grep -v "List" | head -5 | while read line; do
-    echo "adb_device=$line"
-done
-adb shell whoami 2>/dev/null && echo "adb_shell=ok" || echo "adb_shell=fail"
-
-# Shizuku
-echo ""
-echo "--- Shizuku ---"
-echo "rish=$(command -v rish 2>/dev/null && echo ok || echo missing)"
-rish -c 'whoami' 2>/dev/null && echo "rish_shell=ok" || echo "rish_shell=fail"
-SHIZUKU_START="/storage/emulated/0/Android/data/moe.shizuku.privileged.api/start.sh"
-[ -f "$SHIZUKU_START" ] && echo "shizuku_apk=installed" || echo "shizuku_apk=not_found"
-
-# Termux 插件
-echo ""
-echo "--- Termux 插件 ---"
-pkg list-installed 2>/dev/null | grep -q "termux-api" && echo "termux_api=installed" || echo "termux_api=missing"
-timeout 2 termux-sensor -l 2>/dev/null >/dev/null && echo "termux_sensor=ok" || echo "termux_sensor=fail"
-[ -d ~/.termux/boot ] && echo "termux_boot=configured" || echo "termux_boot=not_configured"
-
-# 权限
-echo ""
-echo "--- 权限 ---"
-termux-notification --title "test" --content "." 2>/dev/null && echo "notification=ok" || echo "notification=fail"
-termux-notification-remove 12345 2>/dev/null
-[ -d /sdcard ] && echo "storage=ok" || echo "storage=fail"
-
-# 网络
-echo ""
-echo "--- 网络 ---"
-ping -c 1 -W 3 223.5.5.5 >/dev/null 2>&1 && echo "network=ok" || echo "network=fail"
-ping -c 1 -W 3 registry.npmmirror.com >/dev/null 2>&1 && echo "dns=ok" || echo "dns=fail"
-
-# 后台
-echo ""
-echo "--- 后台 ---"
-termux-wake-lock 2>/dev/null && echo "wakelock=ok" || echo "wakelock=fail"
-termux-wake-unlock 2>/dev/null 2>/dev/null
-
-# 技能库
-echo ""
-echo "--- 技能库 ---"
-[ -f ~/skills.sh ] && echo "skills_sh=present" || echo "skills_sh=missing"
-[ -f ~/adb-skills.sh ] && echo "adb_skills_sh=present" || echo "adb_skills_sh=missing"
+echo "========== 系统 =========="
+echo "Brand=$(getprop ro.product.brand 2>/dev/null || echo ?)"
+echo "Model=$(getprop ro.product.model 2>/dev/null || echo ?)"
+echo "Android=$(getprop ro.build.version.release 2>/dev/null || echo ?)"
+echo "SDK=$(getprop ro.build.version.sdk 2>/dev/null || echo ?)"
+echo "CPU=$(uname -m)"
 
 echo ""
-echo "=========================================="
-echo "  以上内容，全选复制，发 issue 即可"
-echo "  https://gitee.com/xvxv663/termux-shizuku/issues"
-echo "=========================================="
+echo "========== Termux =========="
+echo "Version=$TERMUX_VERSION"
+
+echo ""
+echo "========== ADB =========="
+adb devices 2>/dev/null | grep -v "List" | sed 's/^/Device=/'
+
+echo ""
+echo "========== Shizuku =========="
+echo "Rish=$(command -v rish 2>/dev/null && echo ok || echo missing)"
+rish -c 'whoami' 2>/dev/null && echo "Shell=ok" || echo "Shell=fail"
+
+echo ""
+echo "========== Termux 插件 =========="
+pkg list-installed 2>/dev/null | grep -q "termux-api" && echo "API=installed" || echo "API=missing"
+timeout 2 termux-sensor -l 2>/dev/null >/dev/null && echo "Sensor=ok" || echo "Sensor=fail"
+[ -d ~/.termux/boot ] && echo "Boot=configured" || echo "Boot=no"
+
+echo ""
+echo "========== 权限 =========="
+termux-notification --id 99999 --title "test" --content "." 2>/dev/null && echo "Notification=ok" || echo "Notification=fail"
+termux-notification-remove 99999 2>/dev/null
+[ -d /sdcard ] && echo "Storage=ok" || echo "Storage=fail"
+
+echo ""
+echo "========== 网络 =========="
+ping -c 1 -W 3 223.5.5.5 >/dev/null 2>&1 && echo "Network=ok" || echo "Network=fail"
+
+echo ""
+echo "========== 后台 =========="
+termux-wake-lock 2>/dev/null && echo "WakeLock=ok" || echo "WakeLock=fail"
+termux-wake-unlock 2>/dev/null
+
+echo ""
+echo "========== 技能 =========="
+echo "Skills=$( [ -f ~/skills.sh ] && wc -l < ~/skills.sh || echo 0 )"
+echo "ADBSkills=$( [ -f ~/adb-skills.sh ] && wc -l < ~/adb-skills.sh || echo 0 )"
+
+echo ""
+echo "========== 仓库 =========="
+echo "Commit=$(cd "$(dirname "$0")" && git log --oneline -1 2>/dev/null || echo not_git)"
+
+echo ""
+echo "--- 以上全选复制发 issue ---"
+echo "https://gitee.com/xvxv663/termux-shizuku/issues"
