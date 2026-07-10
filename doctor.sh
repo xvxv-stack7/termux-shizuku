@@ -41,14 +41,14 @@ else
     fail "adb 未连接" "E102"
 fi
 
-adb shell whoami &>/dev/null 2>&1 && pass "adb shell" || fail "adb shell 不可用" "E103"
+adb -s 127.0.0.1:5555 shell whoami &>/dev/null 2>&1 && pass "adb shell" || fail "adb shell 不可用" "E103"
 
 # --- Shizuku ---
 echo ""
 echo "--- Shizuku ---"
 
 command -v rish &>/dev/null && pass "rish" || fail "rish 未安装" "E104"
-rish -c 'whoami' &>/dev/null 2>&1 && pass "rish 可用" || fail "rish 不可用" "E105"
+rish -c 'whoami' &>/dev/null 2>&1 && pass "rish 可用" || warn "rish 未启动，可通过 adb 使用" "E105"
 
 # --- Termux 插件 ---
 echo ""
