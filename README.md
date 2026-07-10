@@ -2,7 +2,7 @@
 
 **让 AI 控制 Android 手机——参考实现与实验笔记。**
 
-> 本仓库是作者验证的技术路线（vivo S19 / Android 16）。不是"一键安装工具"，而是完整原理 + 工具链 + 踩坑记录。面向想理解底层、自行适配的折腾党。如果你只是想用——去 [android-claude-wechat](https://gitee.com/xvxv663/android-claude-wechat) 直接装。
+> 这里是"我是怎么做到的"——原理、工具链、踩坑记录。面向想理解底层、自己动手的折腾党。只想用现成的？去 [android-claude-wechat](https://gitee.com/xvxv663/android-claude-wechat)。
 
 > 🚧 更新频繁，遇问题先跑 `bash doctor.sh`。
 
