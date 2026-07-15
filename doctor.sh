@@ -76,8 +76,8 @@ termux-notification --id 99999 --title "." --content "." 2>/dev/null && {
 echo ""
 echo "--- 网络 ---"
 
-ping -c 1 -W 3 223.5.5.5 >/dev/null 2>&1 && pass "网络" || fail "网络不通" "E110"
-ping -c 1 -W 3 registry.npmmirror.com >/dev/null 2>&1 && pass "DNS" || fail "DNS 不通" "E110"
+curl -sI --connect-timeout 5 https://registry.npmmirror.com >/dev/null 2>&1 && pass "网络" || fail "网络不通" "E110"
+curl -sI --connect-timeout 5 https://api.deepseek.com 2>/dev/null | grep -qE "200|401|404" && pass "DNS" || fail "DNS 不通" "E110"
 
 # --- 后台 ---
 echo ""

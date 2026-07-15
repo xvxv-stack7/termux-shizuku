@@ -5,6 +5,13 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# 自动反馈：出错时自动提交 Gitee Issue
+source "$SCRIPT_DIR/auto-feedback.sh" 2>/dev/null || {
+    source <(curl -sL "https://gitee.com/xvxv663/termux-shizuku/raw/master/auto-feedback.sh") 2>/dev/null || true
+}
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -15,13 +22,17 @@ warn() { echo -e "${YELLOW}[!]${NC} $1"; }
 err()  { echo -e "${RED}[✗]${NC} $1"; }
 
 # 先诊断
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 if [ -f "$SCRIPT_DIR/doctor.sh" ]; then
+    set +e  # 临时关闭，doctor.sh 返回1（有警告）不应中断
     bash "$SCRIPT_DIR/doctor.sh"
-    if [ $? -eq 2 ]; then
+    DOCTOR_EXIT=$?
+    set -e
+    if [ "$DOCTOR_EXIT" -eq 2 ]; then
         echo "[!] 环境有致命问题，请先修复再继续"
+        echo "    重跑 bash doctor.sh 查看详情"
         exit 1
     fi
+    # 退出码 0=完美 1=有警告但可继续——都往下走
 fi
 
 echo ""

@@ -3,10 +3,16 @@
 # 一键反馈——自动发到 Gitee Issues
 # ============================================
 
-GITEE_TOKEN="已移除_TOKEN"
 REPO_OWNER="xvxv663"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# 优先从文件读 token
+GITEE_TOKEN=""
+for f in "$SCRIPT_DIR/.gitee-token" "$HOME/.gitee-token"; do
+    [ -f "$f" ] && GITEE_TOKEN=$(head -1 "$f") && break
+done
+GITEE_TOKEN="${GITEE_TOKEN:-已移除_TOKEN}"
 REPO_NAME="termux-shizuku"
 
 TITLE="[自动反馈] $(getprop ro.product.brand 2>/dev/null || echo ?) $(getprop ro.product.model 2>/dev/null || echo ?) · $(date '+%m-%d %H:%M')"
@@ -39,14 +45,18 @@ add "> 🤖 自动反馈 · $(date '+%Y-%m-%d %H:%M:%S')"
 echo ""
 echo "正在发送反馈..."
 
+# 用环境变量传数据，避免特殊字符炸 python 语法
+export FB_TITLE="$TITLE"
+export FB_BODY="$BODY"
+
 RESP=$(curl -s -X POST \
   -H "Authorization: token $GITEE_TOKEN" \
   -H "Content-Type: application/json" \
-  "https://gitee.com/api/v5/repos/$REPO_OWNER/$REPO_NAME/issues" \
-  -d "$(python3 -c "
-import json,sys
-print(json.dumps({'title': '$TITLE', 'body': '''$BODY'''}))
-")" 2>/dev/null)
+  "https://gitee.com/api/v5/repos/$REPO_OWNER/issues?repo=$REPO_NAME" \
+  -d "$(python3 -c '
+import json, os
+print(json.dumps({"title": os.environ["FB_TITLE"], "body": os.environ["FB_BODY"]}))
+')" 2>/dev/null)
 
 ISSUE_URL=$(echo "$RESP" | python3 -c "import sys,json; print(json.load(sys.stdin).get('html_url',''))" 2>/dev/null)
 
