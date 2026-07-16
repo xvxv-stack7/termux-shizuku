@@ -23,9 +23,11 @@ err()  { echo -e "${RED}[✗]${NC} $1"; }
 
 # 先诊断
 if [ -f "$SCRIPT_DIR/doctor.sh" ]; then
-    set +e  # 临时关闭，doctor.sh 返回1（有警告）不应中断
+    set +e  # 临时关闭 errexit，doctor.sh 返回1（有警告）不应中断
+    trap '' ERR  # ERR trap 不受 set +e 影响，必须单独禁掉
     bash "$SCRIPT_DIR/doctor.sh"
     DOCTOR_EXIT=$?
+    trap 'auto_feedback $LINENO "$BASH_COMMAND"' ERR  # 恢复自动反馈
     set -e
     if [ "$DOCTOR_EXIT" -eq 2 ]; then
         echo "[!] 环境有致命问题，请先修复再继续"
