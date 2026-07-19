@@ -34,21 +34,20 @@
 
 ---
 
-## 🔑 关键一步：拿到 Shizuku 配对码
+## 🔑 关键一步：拿到 Shizuku 连接代码
 
-**这一步跳过的话后面全废。** Shizuku 需要先跟电脑配对才能获得权限，我们用无线调试做一次性跳板：
+**这一步跳过的话后面全废。** Shizuku 需要先启动才能获得系统权限，用"通过连接电脑启动"拿到连接代码给 Claude Code：
 
 1. 打开 Shizuku App
 2. 点击 **"通过连接电脑启动"**
-3. 屏幕上会显示 6 位配对码 + 端口号
-4. 在 Termux 里执行：
+3. 屏幕上会显示一段 adb shell 命令，类似：
    ```bash
-   adb pair 127.0.0.1:<端口> <配对码>
+   adb shell sh /storage/emulated/0/Android/data/moe.shizuku.privileged.api/start.sh
    ```
-   例如：`adb pair 127.0.0.1:45678 123456`
-5. 显示 `Successfully paired` 后，继续下面的安装
+4. 把这段命令复制给 Claude Code（或自己在 Termux 里执行）
+5. 看到 `Shizuku is running` 后，继续下面的安装
 
-> 这个配对码就是跳板的钥匙——拿到它，后面才能把 adbd 切到 TCP、让 Shizuku 永久在线。**配对码每次重启 Shizuku 都会变，变了就重新执行一次。**
+> 这段连接代码就是跳板的钥匙——拿到它，后面才能把 adbd 切到 TCP、让 Shizuku 永久在线。**代码每次点开都会变，变了就重新执行一次。**
 
 ---
 
