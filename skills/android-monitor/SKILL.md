@@ -185,19 +185,6 @@ Format:
 
 A template file is provided in this skill directory — copy it to `~/.cc-connect/` and customize. Claude Code can update this file at runtime to inject fresh, contextual fallback messages, keeping the offline voice aligned with the online voice.
 
-## Proactive Notification Pattern
-
-gaze.sh detects events independently. Claude Code can layer a proactive check-in on top:
-
-- Every 30 minutes of silence → check gaze_state.json
-- If the user is on an entertainment app, low battery, late-night screen, or has been stationary → generate a custom notification regardless of whether a trigger fired
-- Not a cron job — state-driven, not time-driven
-
-Track last contact time in a simple JSON file to avoid spamming:
-```json
-{"last_notification": <timestamp>, "last_wechat": <timestamp>}
-```
-
 ## Files
 
 | Path | Purpose |
@@ -209,6 +196,7 @@ Track last contact time in a simple JSON file to avoid spamming:
 | `sensors/SKILL.md` | 43-sensor reference catalog |
 | `sms/SKILL.md` | SMS inbox polling via ADB content provider |
 | `calendar-alarm/SKILL.md` | Calendar events with alarm reminders |
+| `proactive-checkin/SKILL.md` | Polling-based AI proactive check-in |
 | `~/.cc-connect/gaze_state.json` | Current device snapshot (written by gaze.sh) |
 | `~/.cc-connect/gaze_trigger.json` | Latest event trigger (consumed by Monitor) |
 | `sentinel.log` | Event log |
@@ -288,6 +276,7 @@ The Monitor hook adds near-zero token overhead when idle — it only pushes when
 - **[Sensors Reference](sensors/SKILL.md)** — 43-sensor catalog with composite inference patterns
 - **[SMS Monitor](sms/SKILL.md)** — SMS inbox polling + content forwarding via ADB
 - **[Calendar Alarm](calendar-alarm/SKILL.md)** — Calendar events with alarm-style reminders via content provider
+- **[Proactive Check-in](proactive-checkin/SKILL.md)** — Polling wakes the AI, the AI reads state and decides whether to speak
 
 ## Customization
 

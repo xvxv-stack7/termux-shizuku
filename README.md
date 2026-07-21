@@ -117,6 +117,7 @@ check_all          # 全状态快照
 | └ sensors | `skills/android-monitor/sensors/` | 43 传感器速查手册 |
 | └ sms | `skills/android-monitor/sms/` | 短信轮询 + 自动回复 |
 | └ calendar-alarm | `skills/android-monitor/calendar-alarm/` | 日历事件+闹钟提醒 |
+| └ proactive-checkin | `skills/android-monitor/proactive-checkin/` | 轮询叫醒AI，AI自己决定出不出声 |
 | **phone-control** | `skills/phone-control/` | 锁屏/杀应用/切歌/截图 |
 | **phone-notify** | `skills/phone-notify/` | 通知栏 + 日历操作 |
 | **phone-sensors** | `skills/phone-sensors/` | 屏幕/前台App/电量/步数/光线 |
