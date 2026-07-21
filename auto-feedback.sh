@@ -17,12 +17,12 @@ _detect_platform() {
     local owner token api_base issues_url
     if echo "$remote" | grep -q "gitee"; then
         owner="xvxv663"
-        token="未设置_TOKEN_片段1"$(echo "未设置_TOKEN_片段2")  # Gitee issues-only token
+        token="${AUTO_FB_GITEE_TOKEN:-未设置}"
         issues_url="https://gitee.com/api/v5/repos/${owner}/issues?repo=${AUTO_FB_REPO_NAME}"
         web_url="https://gitee.com/${owner}/${AUTO_FB_REPO_NAME}/issues"
     elif echo "$remote" | grep -q "github"; then
         owner="xvxv-stack7"
-        token="未设置_TOKEN_片段3"$(echo "未设置_TOKEN_片段4")  # GitHub public_repo token
+        token="${AUTO_FB_GITHUB_TOKEN:-未设置}"
         issues_url="https://api.github.com/repos/${owner}/${AUTO_FB_REPO_NAME}/issues"
         web_url="https://github.com/${owner}/${AUTO_FB_REPO_NAME}/issues"
     else
