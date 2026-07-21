@@ -124,11 +124,17 @@ Total: ~2s
 
 ### "Music moment — spontaneous song when headphones connected"
 ```
-1. dumpsys audio | grep bt_a2dp                          (confirm headphones active)
-2. input keyevent 87                                     (next track → auto-resumes any music app)
-3. dumpsys media_session | grep metadata                 (read playing song: title + artist)
-4. WebSearch "artist song lyrics"                        (find lyrics)
-5. Continue the conversation about the song              (natural chat)
+# Shizuku
+1. rish -c 'dumpsys audio' | grep bt_a2dp                    (confirm headphones active)
+2. rish -c 'input keyevent 87'                               (next track → auto-resumes any music app)
+3. rish -c 'dumpsys media_session' | grep metadata           (read title + artist)
+# ADB fallback
+1. adb -s 127.0.0.1:5555 shell dumpsys audio | grep bt_a2dp
+2. adb -s 127.0.0.1:5555 shell input keyevent 87
+3. adb -s 127.0.0.1:5555 shell dumpsys media_session | grep metadata
+# Then:
+4. WebSearch "artist song lyrics"                             (find lyrics)
+5. Continue the conversation about the song                   (natural chat)
 Total: ~5s
 ```
 
