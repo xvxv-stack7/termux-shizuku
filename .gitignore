@@ -1,8 +1,11 @@
-game-raid.sh
-nudge.sh
-skills.sh
-speak-bg.sh
-speak-daemon.sh
-stalker.sh
-ultimate.sh
-control-freak.sh
+# Token文件（含密钥，不提交）
+.gitee-token
+
+# 临时文件
+*.tmp
+*.swp
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
