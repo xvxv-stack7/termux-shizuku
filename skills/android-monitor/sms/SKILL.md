@@ -1,6 +1,6 @@
 ---
 name: sms-monitor
-description: 给AI一个手机号，让他能跟你短信交流——收到短信→AI读懂内容→生成回复→发回去。不是自己给自己发。| Give the AI a phone number for SMS conversations: receive SMS → AI reads & understands → generates reply → sends back. Not self-messaging.
+description: 给AI一个手机号，让他能跟你短信交流——收到短信→AI读懂内容→生成回复→发回去。| Give the AI a phone number for SMS conversations: receive SMS → AI reads & understands → generates reply → sends back.
 ---
 
 # SMS Monitor — Sub-skill of android-monitor
