@@ -156,6 +156,7 @@ termux-notification --id "$(date +%s)" --title "Monitor" --content "your message
 | `gaming_end` | Left a game app | "Gaming session ended." |
 | `low_battery` | Battery dropped below 15% | "Battery low, charge soon." |
 | `midnight_phone` | Screen on at 23:00–06:00 (once/night) | "Late night screen time." |
+| `left_chat` | Left WeChat/Termux → entertainment app | "Left chat to browse." |
 | `long_silence` | No state change > 2.5h | "No activity for a while." |
 
 ## Anti-Addiction (app_limit.sh)
