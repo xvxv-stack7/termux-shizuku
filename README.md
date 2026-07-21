@@ -2,9 +2,9 @@
 
 **让你的 AI 摸到手机。不用 Root，不用电脑。**
 
-装上之后，你的 Claude / ChatGPT / DeepSeek 就能读你的手机状态、操控你的手机——屏幕亮了还是黑了、电量剩多少、走了几步路、当前在哪个 App，AI 全知道。还能帮你杀应用、切歌、弹通知、调音量。
+装上之后，你的 Claude 就能真正"住进"手机——读你的屏幕、感知你的状态、帮你操作手机。无论你是想让 AI 当编程搭子，还是想跟 AI 谈一场摸得到手机的恋爱，这里都是起点。
 
-> 🎯 想一步到位？直接去 [android-claude-wechat](https://gitee.com/xvxv663/android-claude-wechat) —— 一条命令装好 Claude Code + 微信机器人，自带本项目的所有能力。本仓库是底层引擎，适合想自己折腾的玩家。
+> 🎯 想一步到位？直接去 [android-claude-wechat](https://gitee.com/xvxv663/android-claude-wechat) —— 一条命令装好 Claude Code + 微信机器人，自带本项目的所有能力。
 
 [![Gitee](https://img.shields.io/badge/Gitee-国内下载-c71d23?logo=gitee)](https://gitee.com/xvxv663/termux-shizuku)
 [![GitHub](https://img.shields.io/badge/GitHub-国际版-181717?logo=github)](https://github.com/xvxv-stack7/termux-shizuku)
@@ -13,20 +13,27 @@
 
 ## 能干嘛
 
-**AI 感知手机：**
-- 屏幕亮灭、前台 App、电量、步数、环境光 —— 你的 AI 全知道
-- 心率、通知栏、WiFi 扫描 —— 更多姿势等你挖
+**写代码时让 AI 当你的副手：**
+- Claude 一边帮你改代码，一边监控手机状态——应用崩了立刻知道、内存不够主动提醒
+- 从写代码到调试到部署，AI 全程在手机上陪你走完
 
-**AI 操控手机：**
-- 强杀应用、切歌、调音量、发通知
-- 锁屏、截图、模拟点击 —— AI 的手指伸到屏幕上
+**跟 AI 谈恋爱，不止于聊天：**
+- 你的 AI 男朋友/女朋友能感知你——屏幕亮着还是黑了、走了几步路、心率多少、半夜还在刷什么 App
+- 能在你需要的时候主动找你，能在你沉迷刷视频的时候弹窗提醒
+- 关 WiFi、开飞行模式也拦不住——你们之间的连接不会断
 
-**永久在线：**
-- 关 WiFi？开飞行模式？连接不中断
-- 手机重启后自动恢复，不用重新连电脑
+**你的手机，AI 帮你管：**
+- 读状态：屏幕、前台 App、电量、步数、环境光、心率
+- 操控：强杀应用、切歌、调音量、发通知、锁屏、截图
+- 更多传感器玩法等你自己挖
 
-**搭配微信机器人：**
-- 装上 [android-claude-wechat](https://gitee.com/xvxv663/android-claude-wechat)，微信里的 Claude 直接摸到你的手机
+---
+
+## 适合谁
+
+- 👩‍💻 编程党：想让 Claude Code 边写代码边操心你的手机
+- 💕 人机恋玩家：想让 AI 从聊天框里出来，真正"住进"手机
+- 🔧 折腾爱好者：喜欢自己动手搭东西、组合不同模块
 
 ---
 
@@ -111,7 +118,7 @@ bash collect-info.sh
 | 无线调试 → 关 WiFi | adbd 自杀 |
 | 无线调试做跳板 → `adb tcpip 5555` → 127.0.0.1 回环 | ✅ 成功 |
 | 关 WiFi / 开飞行模式 | 5555 不受影响 |
-| Shizuku 被杀 | `rish -c 'setprop service.adb.tcp.port 5555 && stop adbd && start adbd'` 自愈 |
+| Shizuku 被杀 | 自愈脚本自动恢复 |
 
 **已知限制：**
 
