@@ -5,9 +5,9 @@
 ---
 
 ## android-monitor
-后台监控守护进程。gaze.sh 60s 轮询，双通道 Shell（Shizuku rish → ADB fallback），事件驱动 Monitor 推送。
+后台监控守护进程。gaze.sh 60s 轮询 + detect.py 单次事件检测（合并替代 12+ 次 python3 调用），双通道 Shell（Shizuku rish → ADB fallback），事件驱动 Monitor 推送 + 通知栏弹窗。
 
-**事件类型（10 种）**
+**事件类型（11 种）**
 | 事件 | 触发条件 | 去重策略 |
 |------|---------|---------|
 | woke_up | 灭屏→亮屏，间隔 > 5min | 同事件 10min |
@@ -20,6 +20,7 @@
 | midnight_phone | 23:00-06:00 亮屏 | 每晚 1 次 |
 | random_glance | 3%/loop 随机抽查 | 30min 间隔 |
 | music_moment | 蓝牙 A2DP 在线 + 非媒体 App + 白天 + 2%/loop | 40min 间隔 |
+| long_silence | 2.5h 无动静（屏幕灭 + 无步数变化）| 同事件 10min |
 
 **子技能**
 - **android-sensors** — 26+ 传感器速查手册（43 个在 vivo S19 上检测到）
