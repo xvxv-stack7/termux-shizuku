@@ -133,8 +133,8 @@ Total: ~2s
 2. adb -s 127.0.0.1:5555 shell input keyevent 87
 3. adb -s 127.0.0.1:5555 shell dumpsys media_session | grep metadata
 # Then:
-4. WebSearch "artist song lyrics"                             (find lyrics)
-5. Continue the conversation about the song                   (natural chat)
+4. WebSearch "artist song lyrics"                                    (find lyrics)
+5. Continue the conversation about the song                          (natural chat)
 Total: ~5s
 ```
 
