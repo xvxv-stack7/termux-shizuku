@@ -30,8 +30,8 @@ Claude Code session
 - **gaze.sh** runs as a background daemon (60s poll interval)
 - **Dual-channel shell**: `sh_cmd()` tries **Shizuku rish** first (binder IPC, no WiFi needed), falls back to **ADB over TCP** (127.0.0.1:5555). All shell commands automatically use this channel — no separate config required.
 - Events go through **Monitor** (event-driven, not cron-polled) to Claude Code
-- Claude Code generates natural-language **termux-notification** messages in real time
-- Offline **fallback**: if no Claude Code session consumes the trigger within 120s, gaze.sh fires a template notification
+- **The AI generates every message live** — no templates, no canned responses. Each trigger is a moment: the AI reads the event, looks at the user's current state (what app, what time, how many steps), and writes a unique message in its own voice.
+- Offline **fallback**: if no Claude Code session consumes the trigger within 120s, gaze.sh fires from `fallback_messages.json`. This is the **last resort** — treat it as a backup, not the primary channel. Customize the template file to match your AI's personality, but never rely on it when the AI is online.
 - **app_limit.sh** tracks cumulative daily usage per app and force-stops on limit
 
 ## Requirements
@@ -141,10 +141,10 @@ Monitor persistent: true, command:
 TRIGGER="$HOME/.cc-connect/gaze_trigger.json"; LAST_TS=0; while true; do if [ -f "$TRIGGER" ]; then TS=$(python3 -c "import json; print(json.load(open('$TRIGGER')).get('ts',0))" 2>/dev/null || echo 0); if [ "$TS" -gt "$LAST_TS" ]; then LAST_TS=$TS; EVENT=$(python3 -c "import json; print(json.load(open('$TRIGGER')).get('event',''))" 2>/dev/null || echo ""); FG=$(python3 -c "import json; print(json.load(open('$TRIGGER')).get('fg_app',''))" 2>/dev/null || echo ""); echo "TRIGGER:$EVENT|app=$FG|ts=$TS"; fi; fi; sleep 3; done
 ```
 
-When a trigger arrives, Claude Code generates a natural notification via:
+When a trigger arrives, the AI generates a live contextual message and pushes it via termux-notification. No templates, every message is unique:
 
 ```bash
-termux-notification --id "$(date +%s)" --title "Monitor" --content "your message" --priority max
+MSG="your real-time message based on current context" && termux-notification --id "gaze_$(date +%s)" --title "Monitor" --content "$MSG" --priority max
 ```
 
 ## Event Types
