@@ -121,7 +121,7 @@ check_all          # 全状态快照
 | **phone-notify** | `skills/phone-notify/` | 通知栏 + 日历操作 |
 | **phone-sensors** | `skills/phone-sensors/` | 屏幕/前台App/电量/步数/光线 |
 
-> ⚠️ 使用前需按技能文档配置：包名列表、路径、ADB 连接方式。详见各 `SKILL.md` 的 Configuration 段落。
+> ⚠️ **仅适用于 Android + Termux 环境。** 这些技能依赖 `adb`、`termux-*`、Android 系统命令。桌面环境不可用。使用前需按技能文档配置：包名列表、路径、ADB 连接方式。详见各 `SKILL.md` 的 AI Setup 段落。
 
 ---
 

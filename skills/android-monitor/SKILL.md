@@ -3,6 +3,8 @@ name: android-monitor
 description: 安卓后台监控+防沉迷系统。使用时机：需要后台监控手机状态、限制应用使用时长、自动锁应用、事件驱动弹窗提醒。| Android background monitoring with anti-addiction. Use when: background phone monitoring, app time limits, auto force-stop, event-driven notifications needed.
 ---
 
+> ⚠️ **运行环境：Android + Termux + ADB。** 本技能依赖 `adb`、`termux-notification`、`termux-media-player`、`content` 等 Android/Termux 专属命令。在 macOS / Windows / Linux 桌面环境无效。需先通过 [termux-shizuku](https://gitee.com/xvxv663/termux-shizuku) 的 bootstrap.sh 完成环境初始化。
+
 # Android Monitor — Claude Code Skill
 
 Lightweight background monitoring for Android devices via Termux + ADB. Continuously tracks device state and pushes meaningful events to Claude Code through a Monitor hook, enabling real-time AI-generated notifications. Includes a cumulative app usage limiter with progressive enforcement.
