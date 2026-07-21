@@ -141,10 +141,18 @@ Monitor persistent: true, command:
 TRIGGER="$HOME/.cc-connect/gaze_trigger.json"; LAST_TS=0; while true; do if [ -f "$TRIGGER" ]; then TS=$(python3 -c "import json; print(json.load(open('$TRIGGER')).get('ts',0))" 2>/dev/null || echo 0); if [ "$TS" -gt "$LAST_TS" ]; then LAST_TS=$TS; EVENT=$(python3 -c "import json; print(json.load(open('$TRIGGER')).get('event',''))" 2>/dev/null || echo ""); FG=$(python3 -c "import json; print(json.load(open('$TRIGGER')).get('fg_app',''))" 2>/dev/null || echo ""); echo "TRIGGER:$EVENT|app=$FG|ts=$TS"; fi; fi; sleep 3; done
 ```
 
-When a trigger arrives, the AI generates a live contextual message and pushes it via termux-notification. No templates, every message is unique:
+When a trigger arrives, the AI must first check where the user is:
+
+- **User is in chat app (Termux/WeChat)** → Do NOT send termux-notification. The chat IS the channel — speak there naturally.
+- **User is NOT in chat** → Send termux-notification to reach them.
+- **Never** pop a notification for the same event the user is actively discussing in chat.
 
 ```bash
-MSG="your real-time message based on current context" && termux-notification --id "gaze_$(date +%s)" --title "Monitor" --content "$MSG" --priority max
+# Before sending: check foreground app
+FG=$(cat ~/.cc-connect/gaze_state.json | python3 -c "import json,sys; print(json.load(sys.stdin).get('fg_app',''))")
+if [[ "$FG" != "com.termux" && "$FG" != "com.tencent.mm" ]]; then
+    MSG="your unique real-time message here" && termux-notification --id "gaze_$(date +%s)" --title "Monitor" --content "$MSG" --priority max
+fi
 ```
 
 ## Event Types
