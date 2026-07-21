@@ -271,7 +271,70 @@ The Monitor hook adds near-zero token overhead when idle — it only pushes when
 
 **Minimum target**: Android 6.0 (API 23) for full functionality. Android 5.0 (API 21) works with reduced features (no usagestats).
 
-**OEM quirks**: Huawei blocks `dumpsys activity` in EMUI 12+. Xiaomi throttles background dumpsys calls on MIUI 14+. Samsung's `mWakefulness` is under `mWakefulness=` (no regex issue, just note the field exists). Always test on the target device.
+## OEM Compatibility Matrix
+
+Each OEM customizes Android differently. Below are verified compatibility notes per manufacturer and per command. **Test on the target device before deploying.**
+
+### Per-Command OEM Compatibility
+
+| Command | Pixel/AOSP | Xiaomi MIUI/HyperOS | Huawei EMUI/HarmonyOS | vivo OriginOS | Oppo ColorOS | Samsung One UI |
+|---|---|---|---|---|---|---|
+| `dumpsys activity activities` | ✅ | ⚠️ field rename | ❌ blocked EMUI 12+ | ✅ | ✅ | ✅ |
+| `dumpsys activity top` | ✅ | ✅ fallback | ❌ blocked EMUI 12+ | ✅ | ✅ | ✅ |
+| `dumpsys power` (read) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `dumpsys battery` (read) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `dumpsys battery set` (write) | ✅ | ⚠️ needs MIUI Opt off | ❌ often root-only | ❌ restricted | ❌ restricted | ⚠️ strict policies |
+| `dumpsys sensorservice` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `dumpsys usagestats` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `content query calendar` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `am force-stop` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `input keyevent` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `termux-notification` | ✅ | ⚠️ needs exemption | ⚠️ needs exemption | ⚠️ needs exemption | ⚠️ needs exemption | ✅ |
+| `adb tcpip 5555` (wireless) | ✅ | ✅ | ⚠️ needs extra toggle | ✅ | ✅ | ✅ |
+
+**Legend**: ✅ Works out of box | ⚠️ Needs workaround | ❌ Blocked / very limited
+
+### Detailed OEM Notes
+
+#### Xiaomi (MIUI / HyperOS)
+- **dumpsys activity**: `mResumedActivity` may be renamed to `mFocusedActivity`. Use fallback regex `grep -E "(mResumedActivity|mFocusedActivity|top-activity)"` or `dumpsys activity top`.
+- **dumpsys battery set**: requires disabling "MIUI Optimization" in Developer options → reboot.
+- **Background survival**: aggression rating 5/5. Must: disable battery optimization for Termux, enable Autostart, lock Termux in Recents (drag card down until padlock appears). Recommend running `fix-termux-limits` script.
+- **Wireless debugging**: supported. Standard `adb tcpip 5555` flow works.
+
+#### Huawei (EMUI / HarmonyOS)
+- **dumpsys activity**: **blocked** starting EMUI 12 / HarmonyOS 3.0+. Output is empty or compressed. Use `hdc shell hidumper -a` or `hdc shell dumpsys ability` as fallback on HarmonyOS.
+- **HarmonyOS NEXT (5.0+)**: **ADB not available**. Uses `hdc` (HarmonyOS Device Connector) exclusively. This skill's ADB-based commands will not work. Requires hdc-based rewrite.
+- **Wireless debugging**: supported on HarmonyOS 3.x/4.x with extra step — must enable "仅充电模式下允许ADB调试" toggle. First-time setup: USB connect → `adb tcpip 5555` → `adb connect IP:5555` → unplug USB.
+- **dumpsys battery set**: often requires root.
+- **Background**: standard Chinese OEM restrictions apply. Add Termux to battery optimization exceptions.
+
+#### vivo (OriginOS / FuntouchOS)
+- **dumpsys activity**: works normally. Tested on vivo S19 (OriginOS 5 / API 35).
+- **dumpsys battery set**: restricted. System blocks battery state simulation.
+- **Background survival**: aggression 3/5. Must: enable Auto-start, allow high background power consumption, disable Background Activity Manager for Termux.
+- **Sensors**: rich sensor set (43 on S19), but names are Bosch/Lite-On vendor-specific.
+
+#### Oppo (ColorOS)
+- **dumpsys battery set**: typically unsupported. System restrictions are strict.
+- **Background survival**: aggression 3/5. Must: add Termux to Protected Apps list, enable in Startup Manager.
+- Other commands work normally.
+
+#### Samsung (One UI)
+- **dumpsys activity**: works normally. Field names follow AOSP.
+- **dumpsys battery set**: often restricted by strict security policies.
+- **Background**: generally better than Chinese OEMs. Battery optimization exemption recommended.
+
+### Termux Background Survival Quick Reference
+
+| OEM | Key Settings Required |
+|---|---|
+| Xiaomi | Battery opt → No restrictions, Autostart ON, Lock in Recents |
+| Huawei | Battery opt → No restrictions, App launch → Manage manually |
+| vivo | Auto-start ON, High background power → Allow, Background Activity Manager → Unrestrict |
+| Oppo | Protected Apps → Enable, Startup Manager → Allow |
+| Samsung | Battery → Unrestricted |
+| Pixel/AOSP | None required |
 
 ## Sub-skills
 
