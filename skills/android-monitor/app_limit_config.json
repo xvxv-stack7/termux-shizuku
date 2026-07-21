@@ -1,0 +1,9 @@
+{
+  "_comment": "Per-app daily time limits in minutes. Package name as key.",
+  "com.ss.android.ugc.aweme": {"name": "TikTok", "limit_minutes": 40},
+  "com.xingin.xhs": {"name": "RED", "limit_minutes": 30},
+  "tv.danmaku.bili": {"name": "Bilibili", "limit_minutes": 60},
+  "com.smile.gifmaker": {"name": "Kuaishou", "limit_minutes": 30},
+  "com.tencent.tmgp.sgame": {"name": "Honor of Kings", "limit_minutes": 60},
+  "com.tencent.qqlive": {"name": "Tencent Video", "limit_minutes": 90}
+}
