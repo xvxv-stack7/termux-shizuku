@@ -125,8 +125,8 @@ check_all          # 全状态快照
 | 技能 | 路径 | 功能 |
 |---|---|---|
 | **android-monitor** | `skills/android-monitor/` | 后台监控守护进程 + 防沉迷 + 事件推送 |
-| └ sensors | `skills/android-monitor/sensors/` | 43 传感器速查手册 |
-| └ sms | `skills/android-monitor/sms/` | 短信轮询 + 自动回复 |
+| └ android-sensors | `skills/android-monitor/sensors/` | 26+ 传感器速查手册（设备不同数量不同） |
+| └ sms-monitor | `skills/android-monitor/sms/` | 短信轮询 + 自动回复 |
 | └ calendar-alarm | `skills/android-monitor/calendar-alarm/` | 日历事件+闹钟提醒 |
 | └ proactive-checkin | `skills/android-monitor/proactive-checkin/` | 轮询叫醒AI，AI自己决定出不出声 |
 | **phone-control** | `skills/phone-control/` | 锁屏/杀应用/切歌/截图 |
@@ -134,6 +134,26 @@ check_all          # 全状态快照
 | **phone-sensors** | `skills/phone-sensors/` | 屏幕/前台App/电量/步数/光线 |
 
 > ⚠️ **仅适用于 Android + Termux 环境。** 这些技能依赖 `adb`、`termux-*`、Android 系统命令。桌面环境不可用。使用前需按技能文档配置：包名列表、路径、ADB 连接方式。详见各 `SKILL.md` 的 AI Setup 段落。
+
+### 小米 MIUI / HyperOS 修复
+
+MIUI 的前台 App 检测字段名可能与 AOSP 不同（`mFocusedActivity` 替代 `topResumedActivity`）。gaze.sh 已内置多 OEM 回退，通常不需要手动处理。如果监控无反应：
+
+```bash
+# 测试前台 App 检测
+adb shell dumpsys activity activities | grep -E "(topResumedActivity|mResumedActivity|mFocusedActivity)"
+# 如果上面无输出，试回退方案
+adb shell dumpsys activity top | grep "ACTIVITY"
+# 再不行，用 window 方案
+adb shell dumpsys window windows | grep "mCurrentFocus"
+```
+
+另外 MIUI 后台进程限制极严（5/5），必须手动操作：
+1. 设置 → 电池 → 电池优化 → Termux → **不限制**
+2. 设置 → 权限 → 自启动 → **开启 Termux**
+3. 最近任务 → 长按 Termux → **锁定**
+
+或一键执行 [fix-termux-limits](https://github.com/DevCoreXOfficial/fix-termux-limits) 脚本。
 
 ---
 

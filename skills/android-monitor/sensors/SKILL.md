@@ -1,11 +1,11 @@
 ---
 name: android-sensors
-description: 43个安卓传感器速查手册。使用时机：需要查传感器列表、理解传感器用途、组合传感器推断设备状态/用户活动/环境。| Android sensor reference catalog: 43 sensors with inference patterns. Use when: need sensor listing, understanding sensor use cases, combining sensors for device state inference.
+description: 26+安卓传感器速查手册（vivo S19检测到43个，本文档覆盖26个有实用价值的常见传感器）。使用时机：需要查传感器列表、理解传感器用途、组合传感器推断设备状态/用户活动/环境。| 26+ Android sensor reference (43 detected on vivo S19, 26 commonly useful sensors documented here). Use when: need sensor listing, understanding sensor use cases, combining sensors for device state inference.
 ---
 
 # Android Sensors — Claude Code Skill
 
-Complete reference for accessing Android's 43 onboard sensors via ADB/Termux. Sensors expose raw hardware data that can be combined to infer device state, user activity, and environment — without app-level APIs.
+Complete reference for accessing Android sensors via ADB/Termux (43 detected on vivo S19, 26 commonly useful sensors documented here). Sensor count varies by device — typical is 20-30. Sensors expose raw hardware data that can be combined to infer device state, user activity, and environment — without app-level APIs.
 
 ## Quick Commands
 

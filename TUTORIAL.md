@@ -98,14 +98,14 @@ steps                   # 步数
 ambient_light           # 环境光
 is_nearby               # 是否在旁边
 wifi_info               # WiFi SSID
-signal_strength         # 手机信号
+signal_info              # 手机信号
 check_all               # 全状态快照
 ```
 
 **控制类**
 ```bash
 force_stop com.ss.android.ugc.aweme   # 强杀抖音
-music_play_pause                      # 播放/暂停
+music_pp                               # 播放/暂停
 music_next                            # 下一首
 volume_up                             # 音量+
 volume_down                           # 音量-
@@ -117,15 +117,15 @@ wake                                  # 唤醒屏幕（adb-skills.sh）
 **通知类**
 ```bash
 notify "标题" "内容"                   # 系统通知
-notify_urgent "标题" "内容"            # 紧急通知（浮窗+振动+声音）
-notifications_list                    # 当前通知列表
+notify "标题" "内容"                     # 系统通知（可加 --id --priority 等参数）
+notifications                          # 当前通知列表
 ```
 
 **日历类**
 ```bash
-calendar_list                         # 列出事件
-calendar_add "标题" 开始ms 结束ms      # 添加事件
-calendar_delete ID                    # 删除事件
+cal_list                               # 列出事件
+cal_add "标题" 开始ms 结束ms            # 添加事件
+cal_del ID                             # 删除事件
 ```
 
 **蓝牙类（adb-skills.sh）**
