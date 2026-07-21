@@ -143,7 +143,8 @@ json.dump({'event':'$event','fg_app':'$ca','battery':'$cb','screen':'$cs','ts':i
 }
 
 check_fallback() {
-    # Unconsumed trigger > 120s → fire termux-notification as fallback
+    # Unconsumed trigger > 120s → fire termux-notification as fallback.
+    # If Claude Code is running (AI is actively chatting), skip — AI handles it live.
     local trigger_file="${HOME_DIR}/.cc-connect/gaze_trigger.json"
     [[ ! -f "$trigger_file" ]] && return
     local consumed=$(python3 -c "import json; print(json.load(open('$trigger_file')).get('consumed',False))" 2>/dev/null || echo "true")
@@ -151,6 +152,9 @@ check_fallback() {
     local ts=$(python3 -c "import json; print(json.load(open('$trigger_file')).get('ts',0))" 2>/dev/null || echo 0)
     local now=$(date +%s)
     [[ $(( now - ts )) -lt 120 ]] && return
+
+    # Claude Code online → AI handles events live, don't fire fallback
+    pgrep -f "claude" > /dev/null 2>&1 && { log "fallback skipped (Claude Code online)"; return; }
 
     local event=$(python3 -c "import json; print(json.load(open('$trigger_file')).get('event',''))" 2>/dev/null)
     # Try custom fallback messages first, fall back to hardcoded defaults
