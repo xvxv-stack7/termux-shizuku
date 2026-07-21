@@ -10,7 +10,7 @@ SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "$0")" && pwd)}"
 for f in "$SCRIPT_DIR/.gitee-token" "$HOME/.gitee-token"; do
     [ -f "$f" ] && AUTO_FB_TOKEN=$(head -1 "$f") && break
 done
-AUTO_FB_TOKEN="${AUTO_FB_TOKEN:-请设置环境变量_AUTO_FB_GITEE_TOKEN}"
+AUTO_FB_TOKEN="${AUTO_FB_TOKEN:-请设置环境变量_AUTO_FB_GITEE_TOKEN}"  # 公用 issues-only token
 AUTO_FB_OWNER="xvxv663"
 AUTO_FB_REPO_NAME="termux-shizuku"
 

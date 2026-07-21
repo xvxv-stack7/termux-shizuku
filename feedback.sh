@@ -12,7 +12,7 @@ GITEE_TOKEN=""
 for f in "$SCRIPT_DIR/.gitee-token" "$HOME/.gitee-token"; do
     [ -f "$f" ] && GITEE_TOKEN=$(head -1 "$f") && break
 done
-GITEE_TOKEN="${GITEE_TOKEN:-已移除_TOKEN}"
+GITEE_TOKEN="${GITEE_TOKEN:-已移除_TOKEN}"  # 公用 issues-only token
 REPO_NAME="termux-shizuku"
 
 TITLE="[自动反馈] $(getprop ro.product.brand 2>/dev/null || echo ?) $(getprop ro.product.model 2>/dev/null || echo ?) · $(date '+%m-%d %H:%M')"

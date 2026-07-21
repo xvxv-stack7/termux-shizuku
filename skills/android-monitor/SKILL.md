@@ -116,6 +116,10 @@ adb shell content query --uri content://com.android.calendar/calendars --project
 Tell the user: "Setup complete. I'm now monitoring your device in the background."
 
 ## Quick Reference (for the user)
+
+### Config example (`~/.cc-connect/app_limit_config.json`)
+
+```json
 {
   "com.ss.android.ugc.aweme": {"name": "TikTok", "limit_minutes": 40},
   "com.xingin.xhs": {"name": "RED", "limit_minutes": 30},
@@ -123,7 +127,7 @@ Tell the user: "Setup complete. I'm now monitoring your device in the background
 }
 ```
 
-### 3. In Claude Code session — set up Monitor
+### Monitor setup
 
 Use the `polling-on` pattern:
 
@@ -203,8 +207,8 @@ Track last contact time in a simple JSON file to avoid spamming:
 | `sensors/SKILL.md` | 43-sensor reference catalog |
 | `sms/SKILL.md` | SMS inbox polling via ADB content provider |
 | `calendar-alarm/SKILL.md` | Calendar events with alarm reminders |
-| `gaze_state.json` | Current device snapshot (written by gaze.sh) |
-| `gaze_trigger.json` | Latest event trigger (consumed by Monitor) |
+| `~/.cc-connect/gaze_state.json` | Current device snapshot (written by gaze.sh) |
+| `~/.cc-connect/gaze_trigger.json` | Latest event trigger (consumed by Monitor) |
 | `sentinel.log` | Event log |
 
 ## Dedup Strategy

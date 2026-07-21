@@ -85,8 +85,8 @@ adb -s 127.0.0.1:5555 shell 命令
 
 加载技能库：
 ```bash
-source skills.sh        # rish 版本
-source adb-skills.sh    # 纯 adb 版本
+source adb-skills.sh    # 纯 adb 版本（推荐）
+# 也可用 Shizuku rish 通道：rish -c '命令'
 ```
 
 **感知类**
