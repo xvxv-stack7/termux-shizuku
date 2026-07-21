@@ -26,18 +26,31 @@ When the user mentions time-related plans, parse the intent and act without bein
 
 ## Approach 1: CronCreate Alarm (Rings — for same-day)
 
-Use Claude Code's built-in `CronCreate` with `durable: true`. At the trigger time, fire a termux-notification with sound:
+Use Claude Code's built-in `CronCreate` with `durable: true`. At the trigger time, fire all three together for a full alarm experience (sound + vibration + popup):
 
 ```
 CronCreate({
   cron: "<minute> <hour> <day> <month> *",
-  prompt: "termux-notification --id alarm-$(date +%s) --title '⏰ <title>' --content '<detail>' --priority max --sound --vibrate '1000,300,1000,300,1000' --ongoing",
+  prompt: "termux-media-player play /system/media/audio/alarms/Clock_Alert.ogg && termux-notification --id alarm-$(date +%s) --title '⏰ <title>' --content '<detail>' --priority max --vibrate '1000,200,500,200,1000' --ongoing && termux-dialog confirm -t '⏰ <time> | <title>' -i '<detail>\n\nTime: <full datetime>'",
   recurring: false,
   durable: true
 })
 ```
 
-**Why this works:** `durable: true` persists to disk — survives session restarts. `--sound --vibrate --ongoing` makes it ring like a real alarm. `--ongoing` keeps it visible until dismissed.
+**Three components:**
+- `termux-media-player play <alarm_ogg>` — plays actual alarm ringtone (not just a beep)
+- `termux-notification --vibrate --ongoing` — vibration + persistent notification bar entry
+- `termux-dialog confirm` — popup overlay showing time and event details
+
+**Why this works:** `durable: true` persists to disk — survives session restarts. `termux-media-player` plays the system alarm sound file directly, not relying on notification channel audio settings. Vibration and popup ensure the alarm is noticed even if media volume is low.
+
+**Available alarm sounds:**
+```
+/system/media/audio/alarms/Clock_Alert.ogg
+/system/media/audio/alarms/Beautiful_Touching.ogg
+/system/media/audio/alarms/Crisp_Ring.ogg
+/system/media/audio/alarms/Early_In_The_Morning.ogg
+```
 
 **Limitation:** Requires Claude Code daemon to be running at trigger time.
 
