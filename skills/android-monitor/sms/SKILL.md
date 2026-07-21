@@ -12,8 +12,13 @@ Give the AI a phone number. When someone texts it, the AI reads the message, und
 When the user asks to use SMS monitoring, the AI runs these checks automatically:
 
 ```bash
-# 1. Ensure Termux:API is installed
-pkg list-installed | grep termux-api || pkg install termux-api -y
+# 1. Ensure Termux:API is installed — requires version 1.30 exactly
+# (other versions have different SMS command signatures)
+pkg list-installed | grep "termux-api/1.30" || {
+    echo "需要 Termux:API v1.30，当前版本:"
+    pkg list-installed | grep termux-api
+    echo "下载: https://f-droid.org/packages/com.termux.api/"
+}
 
 # 2. Test SMS access
 termux-sms-list 2>&1 | head -3
@@ -133,7 +138,7 @@ SMS arrives → bash cron detects → writes trigger.txt
 
 ## Limitations
 
-- Requires Termux:API app (separate install from main Termux)
+- Requires Termux:API **v1.30** — other versions have incompatible SMS command signatures
 - No push — polling only. 60s cron is the floor.
 - MMS not accessible via `termux-sms-list`
 - RCS/Chat messages go through proprietary Google Messages database, not SMS inbox
