@@ -122,6 +122,16 @@ Total: ~8s (vision is the bottleneck)
 Total: ~2s
 ```
 
+### "Music moment — spontaneous song when headphones connected"
+```
+1. dumpsys audio | grep bt_a2dp                          (confirm headphones active)
+2. input keyevent 85 or am start music app               (play)
+3. dumpsys notification | grep tickerText                (read now-playing notification → title + artist)
+4. WebSearch "song title lyrics"                         (find lyrics)
+5. Continue the conversation about the song              (natural chat)
+Total: ~5s
+```
+
 ## Decision Logic
 
 When the user says "do X", follow this decision tree:
