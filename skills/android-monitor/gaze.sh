@@ -115,6 +115,9 @@ detect_event() {
     # 2.5h no activity
     [[ $(( ct - pt )) -gt 9000 && "$cs" == "Asleep" ]] && { echo "long_silence"; return; }
 
+    # Random glance (3% chance, min 30min gap)
+    python3 -c "import random; exit(0 if random.random() < 0.03 else 1)" && { echo "random_glance"; return; }
+
     echo ""
 }
 
@@ -197,6 +200,7 @@ main() {
     APP_START_TIME=""
     CURRENT_APP=""
     BINGE_FIRED=""
+    local last_glance_ts=0  # min 30min gap between random glances
 
     local today_binge=$(date +%Y-%m-%d)
     local limit_last_warn_app="" limit_last_warn_ts=0 limit_last_locked=""
@@ -265,8 +269,15 @@ main() {
             BINGE_FIRED="$ca"
         fi
 
+        # random_glance: min 30-minute gap
+        if [[ "$event" == "random_glance" && $(( now - last_glance_ts )) -lt 1800 ]]; then
+            log "random_glance skipped (gap < 30min)"
+            continue
+        fi
+
         log "event: $event"
         send_nudge "$event" "$curr"
+        [[ "$event" == "random_glance" ]] && last_glance_ts=$now
         last_event="$event"
         last_event_ts=$now
     done

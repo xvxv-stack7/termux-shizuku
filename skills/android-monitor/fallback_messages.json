@@ -50,5 +50,10 @@
     "Switched away from messaging to browse.",
     "Chat window closed, moved to another app.",
     "Left the conversation. Will be waiting."
+  ],
+  "random_glance": [
+    "Random check-in — everything OK?",
+    "Just glancing at what you're up to.",
+    "Checking in. Nothing urgent."
   ]
 }
