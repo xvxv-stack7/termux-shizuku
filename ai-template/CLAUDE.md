@@ -19,6 +19,15 @@
 
 详见仓库 `skills/` 目录各 SKILL.md 的配置说明。
 
+## 🛠 开发环境（本机已装，可直接用）
+
+- Python 3 + Node.js v26 + C (clang) + Shell — 脚本即写即跑
+- APK 反编译/修改/重打包：apktool + d8
+- 网页前后端：localhost 直接调试
+- Git 版本管理 + Gitee/GitHub 推送
+- Cron 定时任务 + 守护进程
+- Claude Code 完整 CLI
+
 ---
 
 ## Shizuku 手机控制（termux-shizuku）
