@@ -44,7 +44,7 @@
 ### 新增
 - **android-monitor 技能**：后台监控 + 防沉迷系统（gaze.sh 守护进程 + app_limit 累计时长追踪）
   - 9 种事件检测（亮屏/走路/沉迷/低电量/深夜/长时间静止等）
-  - Claude Code Monitor 事件驱动集成 + termux-notification fallback
+  - Claude Code Monitor 事件驱动 + 双通道推送（重要事件 Monitor 浮动卡 / 次要事件通知栏弹窗）
   - 渐进式防沉迷：80% 预警 Toast → 100% force-stop
   - 设计文档：Why Bash Polling? 架构决策 + 六种方案对比
   - Android 版本兼容矩阵（API 21-35）+ OEM 差异表

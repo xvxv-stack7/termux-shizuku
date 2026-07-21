@@ -17,10 +17,10 @@ Lightweight background monitoring for Android devices via Termux + ADB. Continuo
 
 ```
 gaze.sh (system daemon, 60s loop)
-  ├─ collect_state()     → dumpsys power / activity / battery
-  ├─ detect_event()      → screen wake, walking, binge, low battery, midnight
-  ├─ app_limit.sh        → cumulative time tracking + force-stop at threshold
-  ├─ send_nudge()        → writes lightweight trigger for Claude Code Monitor
+  ├─ collect_state()       → dumpsys power / activity / battery
+  ├─ detect_and_extract()  → 调用 detect.py，11 种事件一次检测
+  ├─ app_limit.sh          → cumulative time tracking + force-stop at threshold
+  ├─ send_nudge()          → writes lightweight trigger for Claude Code Monitor
 
 Claude Code session
   └─ Monitor (persistent) → watches trigger file → AI generates notification message
@@ -68,7 +68,7 @@ Based on the user's answers, write `~/.cc-connect/app_limit_config.json`. Use th
 
 ### Step 4: Update gaze.sh entertainment patterns
 
-Read `gaze.sh`, find the `detect_event()` function, and update the `case` patterns in the binge_app and entertainment-switch sections to match the packages from Step 2. Keep package name fragments (e.g., for `com.ss.android.ugc.aweme` use `*aweme*`).
+Read `detect.py`, and update the `ent_kw` and `game_kw` lists to match the packages from Step 2. Keep package name fragments (e.g., for `com.ss.android.ugc.aweme` use `aweme`).
 
 ### Step 5: Set up data directory
 
@@ -344,4 +344,4 @@ Each OEM customizes Android differently. Below are verified compatibility notes 
 
 - Adjust `LOOP_SLEEP` in gaze.sh (default 60s)
 - Modify `app_limit_config.json` for different apps/limits
-- Extend `detect_event()` for custom triggers
+- Extend `detect.py` for custom triggers
