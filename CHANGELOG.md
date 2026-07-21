@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## v0.6.0 (2026-07-21)
+
+### 新增
+- **phone-elements 技能**：UI 元素树解析。`uiautomator dump` → 找文本/ID/class → 获取坐标 → 点击。1 秒端到端，比截图识图快 8 倍。双方法自动回退（/dev/tty → 文件 dump），免疫小米 MIUI 假报错 bug。vivo S19 实测通过。
+- **phone-open 技能**：打开网页/本地文件/应用商店/深度链接。纯 Android intent 系统，不依赖额外 App。
+- **smart-dispatch 技能**：智能调度层。命令 AI 接自然语言指令后自动拆解步骤、从技能库选最快工具组合。含决策树+工具目录+组合模板。
+- **phone-control 扩展**：截图+AI 识图、剪贴板读写、打开 URL。全双通道 rish+adb。
+- **boot/startup.sh.example**：开机自启模板，新用户直接复制改路径。
+
+### 修复
+- `left_chat` 不再在微信↔Termux 之间切换时误报
+- `left_chat` 改为从聊天切到**任意**应用都触发（不限娱乐 App）
+- CHANGELOG 移除不存在的 `calendar_alarm.py` 条目
+
 ## v0.5.0 (2026-07-21)
 
 ### 新增
