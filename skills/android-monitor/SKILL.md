@@ -7,6 +7,10 @@ description: Android device background monitoring with anti-addiction — gaze.s
 
 Lightweight background monitoring for Android devices via Termux + ADB. Continuously tracks device state and pushes meaningful events to Claude Code through a Monitor hook, enabling real-time AI-generated notifications. Includes a cumulative app usage limiter with progressive enforcement.
 
+## Sub-skills
+
+- **[Sensors Reference](sensors/SKILL.md)** — 43-sensor catalog with composite inference patterns. Covers motion, orientation, environmental, activity recognition, and event detection sensors accessible via `dumpsys sensorservice`.
+
 ## Architecture
 
 ```
@@ -120,9 +124,10 @@ Called automatically by gaze.sh every loop — no separate process needed.
 
 | Path | Purpose |
 |---|---|
-| `gaze.sh` | Main daemon (this repo: `skills/android-monitor/gaze.sh`) |
+| `gaze.sh` | Main daemon |
 | `app_limit.sh` | Usage tracker + limiter |
 | `app_limit_config.json` | Per-app daily minute limits |
+| `sensors/SKILL.md` | 43-sensor reference catalog |
 | `gaze_state.json` | Current device snapshot (written by gaze.sh) |
 | `gaze_trigger.json` | Latest event trigger (consumed by Monitor) |
 | `sentinel.log` | Event log |
