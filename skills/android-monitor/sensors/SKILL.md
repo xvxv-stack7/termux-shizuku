@@ -1,6 +1,6 @@
 ---
 name: android-sensors
-description: Android sensor catalog and reference — 43 sensors accessible via ADB dumpsys, with practical use cases for device state inference, activity recognition, and environmental awareness
+description: 43个安卓传感器速查手册——动作/姿态/环境/活动识别/事件检测 | Android sensor catalog: 43 sensors via ADB dumpsys with inference patterns
 ---
 
 # Android Sensors — Claude Code Skill

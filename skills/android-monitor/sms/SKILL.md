@@ -1,6 +1,6 @@
 ---
 name: sms-monitor
-description: SMS inbox polling via termux-sms-list (Termux:API) — read, filter, forward, and auto-reply to SMS content
+description: 短信收件箱轮询——termux-sms-list读取/发送/自动回复 | SMS inbox polling via termux-sms-list (Termux:API): read, send, auto-reply
 ---
 
 # SMS Monitor — Sub-skill of android-monitor

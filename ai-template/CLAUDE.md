@@ -1,6 +1,19 @@
 # termux-shizuku AI 技能模板
 # 把这个文件内容加到 CLAUDE.md 或 AI 配置中
 
+## 🤖 Claude Code 用户首选
+
+如果你在用 Claude Code，别从零开始写命令——直接加载 `skills/` 下的现成技能：
+
+- **`/android-monitor`** — 后台监控 + 防沉迷 + 事件推送（包含 sensors 和 sms 子技能）
+- **`/phone-control`** — 锁屏/杀应用/切歌/截图
+- **`/phone-notify`** — 通知栏 + 日历
+- **`/phone-sensors`** — 屏幕/前台App/电量/步数/光线
+
+详见仓库 `skills/` 目录各 SKILL.md 的配置说明。
+
+---
+
 ## Shizuku 手机控制（termux-shizuku）
 
 三条线控制手机，不依赖 WiFi，不需电脑，不需 root。

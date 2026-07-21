@@ -1,70 +1,61 @@
 ---
 name: phone-control
-description: 操控手机——锁屏、杀应用、切歌、调音量、截图、唤醒。需要 adb 已连接 127.0.0.1:5555。
+description: 安卓设备控制——锁屏/杀应用/媒体键/截图/唤醒 | Control Android device: lock screen, force-stop apps, media keys, screenshot, wake
 ---
 
-# 🎮 手机操控技能
+# Phone Control
 
-> 让 Claude 的手指伸到手机上——锁屏、切歌、杀应用，一句话的事。
+Device control commands via ADB shell. No root required.
 
-## 前置条件
+## Prerequisites
 
 ```bash
 adb connect 127.0.0.1:5555 2>/dev/null
 ```
 
-## 命令清单
+## Commands
 
-### 锁屏
+### Lock / Wake
 ```bash
-adb -s 127.0.0.1:5555 shell input keyevent 26
+adb -s 127.0.0.1:5555 shell input keyevent 26   # lock
+adb -s 127.0.0.1:5555 shell input keyevent 224  # wake
 ```
 
-### 唤醒
+### Force-stop app
 ```bash
-adb -s 127.0.0.1:5555 shell input keyevent 224
+adb -s 127.0.0.1:5555 shell am force-stop <package.name>
 ```
 
-### 强杀应用
+### Media keys
 ```bash
-# 替换为包名，如 com.ss.android.ugc.aweme（抖音）
-adb -s 127.0.0.1:5555 shell am force-stop 包名
+adb -s 127.0.0.1:5555 shell input keyevent 85  # play/pause
+adb -s 127.0.0.1:5555 shell input keyevent 87  # next track
+adb -s 127.0.0.1:5555 shell input keyevent 88  # prev track
 ```
 
-### 切歌
+### Volume
 ```bash
-adb -s 127.0.0.1:5555 shell input keyevent 85  # 播放/暂停
-adb -s 127.0.0.1:5555 shell input keyevent 87  # 下一首
-adb -s 127.0.0.1:5555 shell input keyevent 88  # 上一首
+adb -s 127.0.0.1:5555 shell input keyevent 24  # vol up
+adb -s 127.0.0.1:5555 shell input keyevent 25  # vol down
 ```
 
-### 音量
-```bash
-adb -s 127.0.0.1:5555 shell input keyevent 24  # 音量+
-adb -s 127.0.0.1:5555 shell input keyevent 25  # 音量-
-```
-
-### 截图
+### Screenshot
 ```bash
 adb -s 127.0.0.1:5555 shell screencap -p /sdcard/screenshot.png
 ```
 
-### 打开相机
+### Open camera
 ```bash
 adb -s 127.0.0.1:5555 shell am start -a android.media.action.STILL_IMAGE_CAMERA
 ```
 
-### 回主页
+### Navigation
 ```bash
-adb -s 127.0.0.1:5555 shell input keyevent 3
+adb -s 127.0.0.1:5555 shell input keyevent 3   # home
+adb -s 127.0.0.1:5555 shell input keyevent 4   # back
 ```
 
-### 返回
-```bash
-adb -s 127.0.0.1:5555 shell input keyevent 4
-```
-
-### 重连 adb
+### Reconnect ADB
 ```bash
 adb connect 127.0.0.1:5555
 ```

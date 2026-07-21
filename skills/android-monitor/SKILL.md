@@ -1,6 +1,6 @@
 ---
 name: android-monitor
-description: Android device background monitoring with anti-addiction — gaze.sh daemon + app usage limits + Claude Code event-driven alerts via termux-notification
+description: 安卓后台监控+防沉迷——gaze.sh守护进程+应用时长限制+事件推送 | Android background monitoring with anti-addiction: gaze.sh daemon + app usage limits + event-driven alerts
 ---
 
 # Android Monitor — Claude Code Skill

@@ -125,27 +125,9 @@ bash collect-info.sh
 <details>
 <summary><b>🔧 底层原理（好奇的看）</b></summary>
 
-用无线调试做一次性跳板，把 adbd 切到 TCP 5555 端口，走 127.0.0.1 回环——手机自己连自己，网络全断也不影响。Shizuku 通过这个通道获得系统级权限。
+用无线调试做一次性跳板，把 adbd 切到 TCP 5555 端口，走 127.0.0.1 回环——手机自己连自己，网络全断也不影响。
 
-**踩坑记录：**
-
-| 方法 | 结果 |
-|------|------|
-| `setprop service.adb.tcp.port 5555` | SELinux 拦截 |
-| 无线调试 → 关 WiFi | adbd 自杀 |
-| 无线调试做跳板 → `adb tcpip 5555` → 127.0.0.1 回环 | ✅ 成功 |
-| 关 WiFi / 开飞行模式 | 5555 不受影响 |
-| Shizuku 被杀 | 自愈脚本自动恢复 |
-
-**已知限制：**
-
-| 能力 | 原因 |
-|------|------|
-| 亮度调节 | vivo SELinux 锁死 |
-| 通知内容 | dumpsys 加密 |
-| 剪贴板读取 | vivo provider 拒绝 |
-| setprop | SELinux 拦截 |
-
+完整原理、踩坑记录、命令详解见 **[TUTORIAL.md](TUTORIAL.md)**。
 </details>
 
 ---
