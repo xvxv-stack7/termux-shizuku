@@ -7,10 +7,16 @@ description: 系统通知+日历管理。使用时机：需要发系统通知、
 
 Notification and calendar operations via termux-api and ADB.
 
-## Prerequisites
+## 🤖 AI Setup
 
+Verify ADB is connected before running any command:
 ```bash
-adb connect 127.0.0.1:5555 2>/dev/null
+adb connect 127.0.0.1:5555 || echo "ADB not available"
+```
+
+Check termux-api for notification commands:
+```bash
+pkg list-installed | grep termux-api || pkg install termux-api -y
 ```
 
 ## Notifications

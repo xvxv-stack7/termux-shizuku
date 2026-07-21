@@ -39,41 +39,83 @@ Claude Code session
 - `python3` in Termux
 - Claude Code with Monitor tool access
 
-## ⚠️ Configuration Required — Read Before Deploy
+## 🤖 AI Setup Guide
 
-**This skill ships with template configs. You MUST customize these before use:**
+When the user says "set up android-monitor" or "install this skill", **the AI should run these steps automatically**. The user does not need to read or understand them.
 
-### Must-change:
-1. **`app_limit_config.json`** — Replace example packages (TikTok/RED/Bilibili) with the apps on your device. Find package names via:
-   ```bash
-   adb shell dumpsys activity activities | grep -oP 'topResumedActivity=\S+\s+\S+\s+\K[^/]+'
-   ```
-2. **`gaze.sh` — `detect_event()`** — The entertainment app pattern list (`*aweme*|*xhs*|*bili*|...`) uses common Chinese apps. Replace with your target apps' package name fragments.
-
-### Should-check:
-3. **`fallback_messages.json`** — Copy the template to `~/.cc-connect/` and rewrite messages in your own voice. gaze.sh will use these instead of the built-in defaults.
-4. **Paths** — This skill assumes `~/.cc-connect/` as the data directory. Adjust `HOME_DIR` in gaze.sh if different.
-5. **ADB device** — gaze.sh auto-connects to `127.0.0.1:5555`. Change the fallback in `main()` if using USB or a different port.
-6. **Monitor command** — The Claude Code Monitor command in this doc references `~/.cc-connect/gaze_trigger.json`. Match this to your actual path.
-7. **Calendar (for calendar-alarm sub-skill)** — Verify `calendar_id` with `adb shell content query --uri content://com.android.calendar/calendars --projection _id:name`. Default is `calendar_id=1`.
-
-## Quick Start
-
-### 1. Deploy gaze.sh as background daemon
+### Step 1: Detect device
 
 ```bash
-# Ensure ADB is connected
-adb connect 127.0.0.1:5555
-
-# Start the daemon
-nohup bash ~/.cc-connect/scripts/gaze.sh > /dev/null 2>&1 &
+adb devices && adb shell getprop ro.build.version.release
 ```
 
-### 2. Configure app limits
+### Step 2: Find entertainment apps on this device
 
-Edit `~/.cc-connect/app_limit_config.json`:
+```bash
+adb shell pm list packages | grep -iE "aweme|xhs|bili|kuaishou|game|timi|sgame|pubg|genshin|honkai|starrail|qqlive|iqiyi|youtube|netflix|tiktok" | cut -d: -f2
+```
 
+Show the list to the user. Ask: "Which of these should I set time limits for, and how many minutes per day?"
+
+### Step 3: Write app_limit_config.json
+
+Based on the user's answers, write `~/.cc-connect/app_limit_config.json`. Use the template format:
 ```json
+{"<package>": {"name": "<human name>", "limit_minutes": <minutes>}, ...}
+```
+
+### Step 4: Update gaze.sh entertainment patterns
+
+Read `gaze.sh`, find the `detect_event()` function, and update the `case` patterns in the binge_app and entertainment-switch sections to match the packages from Step 2. Keep package name fragments (e.g., for `com.ss.android.ugc.aweme` use `*aweme*`).
+
+### Step 5: Set up data directory
+
+```bash
+mkdir -p ~/.cc-connect/scripts
+cp gaze.sh ~/.cc-connect/scripts/
+cp app_limit.sh ~/.cc-connect/scripts/
+chmod +x ~/.cc-connect/scripts/*.sh
+```
+
+### Step 6: Customize fallback messages (optional)
+
+Ask the user: "When I'm offline and can't generate messages, should I use generic notifications or do you want to write your own fallback messages?"
+
+If they want custom messages, let them edit `~/.cc-connect/fallback_messages.json`. Otherwise the built-in defaults are fine.
+
+### Step 7: Verify ADB and start daemon
+
+```bash
+adb connect 127.0.0.1:5555
+nohup bash ~/.cc-connect/scripts/gaze.sh > /dev/null 2>&1 &
+echo "gaze.sh started with PID: $(pgrep -f gaze.sh)"
+```
+
+### Step 8: Set up Monitor
+
+Start the Claude Code Monitor hook (the AI does this — not the user):
+
+```
+Monitor persistent: true, command:
+TRIGGER="$HOME/.cc-connect/gaze_trigger.json"; LAST_TS=0; while true; do if [ -f "$TRIGGER" ]; then TS=$(python3 -c "import json; print(json.load(open('$TRIGGER')).get('ts',0))" 2>/dev/null || echo 0); if [ "$TS" -gt "$LAST_TS" ]; then LAST_TS=$TS; EVENT=$(python3 -c "import json; print(json.load(open('$TRIGGER')).get('event',''))" 2>/dev/null || echo ""); FG=$(python3 -c "import json; print(json.load(open('$TRIGGER')).get('fg_app',''))" 2>/dev/null || echo ""); echo "TRIGGER:$EVENT|app=$FG|ts=$TS"; fi; fi; sleep 3; done
+```
+
+### Step 9: Verify everything works
+
+```bash
+# Check daemon running
+pgrep -f gaze.sh
+
+# Check state file being written (wait 60s after start)
+cat ~/.cc-connect/gaze_state.json | python3 -m json.tool
+
+# Check calendar access (for calendar-alarm)
+adb shell content query --uri content://com.android.calendar/calendars --projection _id:name
+```
+
+Tell the user: "Setup complete. I'm now monitoring your device in the background."
+
+## Quick Reference (for the user)
 {
   "com.ss.android.ugc.aweme": {"name": "TikTok", "limit_minutes": 40},
   "com.xingin.xhs": {"name": "RED", "limit_minutes": 30},

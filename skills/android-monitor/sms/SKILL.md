@@ -5,22 +5,23 @@ description: 短信收件箱轮询+发送。使用时机：需要读取新短信
 
 # SMS Monitor — Sub-skill of android-monitor
 
-## ⚙️ Setup
+## 🤖 AI Setup
+
+When the user asks to use SMS monitoring, the AI runs these checks automatically:
 
 ```bash
-# 1. Install Termux:API (F-Droid)
-# https://f-droid.org/packages/com.termux.api/
+# 1. Ensure Termux:API is installed
+pkg list-installed | grep termux-api || pkg install termux-api -y
 
-# 2. Verify termux-sms-list works
-termux-sms-list 2>&1 | head -5
-# Should return JSON array, not an error
+# 2. Test SMS access
+termux-sms-list 2>&1 | head -3
+# If error: tell user to grant SMS permission —
+# Android Settings → Apps → Termux:API → Permissions → SMS
 
-# 3. Verify termux-sms-send works (optional — only if sending replies)
+# 3. Optional — test sending
 termux-sms-send -n 10086 -m "test" 2>&1
-# Will fail with "no SIM" on WiFi-only devices — that's expected
+# Expected to fail on WiFi-only devices — that's normal
 ```
-
-If `termux-sms-list` returns an error, grant SMS permission to Termux:API in Android Settings → Apps → Termux:API → Permissions → SMS.
 
 ---
 

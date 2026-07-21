@@ -5,25 +5,22 @@ description: 日历事件+闹钟提醒。使用时机：用户提到时间安排
 
 # Calendar & Alarm — Sub-skill of android-monitor
 
-## ⚙️ Setup
+## 🤖 AI Setup
 
-Before first use, verify your device's calendar provider and alarm sound paths:
+When the user asks to use calendar-alarm, the AI automatically verifies:
 
 ```bash
-# 1. Check calendar access
+# 1. Calendar access — find the primary calendar ID
 adb shell content query --uri content://com.android.calendar/calendars --projection _id:name
-# Note the _id of your primary calendar (usually 1)
+# Default is calendar_id=1. If different, update all commands below.
 
-# 2. List available alarm sounds
+# 2. Alarm sounds — find available ringtones
 adb shell ls /system/media/audio/alarms/
-# Pick one (default: Clock_Alert.ogg) and verify it plays:
-# termux-media-player play /system/media/audio/alarms/Clock_Alert.ogg
+# Default: Clock_Alert.ogg. Let user pick if multiple available.
 
-# 3. Verify termux-api is installed (for notification + dialog)
-pkg list-installed | grep termux-api
+# 3. termux-api installed?
+pkg list-installed | grep termux-api || pkg install termux-api -y
 ```
-
-Update `calendar_id` and alarm file path in the commands below if your device differs.
 
 ---
 

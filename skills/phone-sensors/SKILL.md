@@ -7,10 +7,16 @@ description: 安卓设备状态感知。使用时机：需要查前台应用/屏
 
 Device state queries via ADB dumpsys and termux-sensor.
 
-## Prerequisites
+## 🤖 AI Setup
 
+Verify ADB is connected before running any command:
 ```bash
-adb connect 127.0.0.1:5555 2>/dev/null
+adb connect 127.0.0.1:5555 || echo "ADB not available"
+```
+
+For step counter and ambient light, termux-api is optional but recommended:
+```bash
+pkg list-installed | grep termux-api || pkg install termux-api -y
 ```
 
 ## Commands
