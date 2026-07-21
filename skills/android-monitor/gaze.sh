@@ -124,12 +124,16 @@ detect_event() {
     # Random glance (3% chance, min 30min gap)
     python3 -c "import random; exit(0 if random.random() < 0.03 else 1)" && { echo "random_glance"; return; }
 
-    # Music moment: Bluetooth A2DP active + daytime → play a song (2%/loop, min 40min gap)
+    # Music moment: Bluetooth A2DP + not in video/audio apps + daytime (2%/loop, min 40min gap)
     if [[ "$cs" == "Awake" && $hour -ge 8 && $hour -lt 23 ]]; then
-        local has_a2dp=$(adb_sh dumpsys audio 2>/dev/null | grep -c "Devices:.*bt_a2dp")
-        if [[ $has_a2dp -gt 0 ]]; then
-            python3 -c "import random; exit(0 if random.random() < 0.02 else 1)" && { echo "music_moment"; return; }
-        fi
+        case "$ca" in *aweme*|*kuaishou*|*bili*|*qqlive*|*iqiyi*|*youtube*|*tiktok*|*cloudmusic*|*qqmusic*|*kugou*|*spotify*)
+            : ;;  # watching video or listening to music — don't interrupt
+        *)
+            local has_a2dp=$(adb_sh dumpsys audio 2>/dev/null | grep -c "Devices:.*bt_a2dp")
+            if [[ $has_a2dp -gt 0 ]]; then
+                python3 -c "import random; exit(0 if random.random() < 0.02 else 1)" && { echo "music_moment"; return; }
+            fi ;;
+        esac
     fi
 
     echo ""
