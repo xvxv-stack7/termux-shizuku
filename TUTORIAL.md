@@ -1,6 +1,6 @@
 # termux-shizuku 完整教程
 
-> 仓库地址：https://github.com/xvxv-stack7/termux-shizuku
+> 仓库地址：https://gitee.com/xvxv663/termux-shizuku（GitHub 镜像：https://github.com/xvxv-stack7/termux-shizuku）
 
 ---
 
@@ -51,7 +51,7 @@
 pkg install android-tools
 
 # 2. 克隆仓库
-git clone https://github.com/xvxv-stack7/termux-shizuku.git
+git clone https://gitee.com/xvxv663/termux-shizuku.git
 cd termux-shizuku
 
 # 3. 打开 USB 调试

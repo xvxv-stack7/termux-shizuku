@@ -39,7 +39,7 @@
 
 ## 准备工作
 
-- Android 11+
+- Android 6.0+（dumpsys usagestats 需要 API 23；基础功能 API 21/Android 5.0 可用）
 - [Shizuku](https://shizuku.rikka.app/) 已安装
 - Termux（F-Droid：[清华镜像](https://mirrors.tuna.tsinghua.edu.cn/fdroid/repo/)）
 
@@ -92,6 +92,23 @@ music_next         # 切歌
 notify "标题" "内容" # 发通知
 check_all          # 全状态快照
 ```
+
+---
+
+## 🤖 Claude Code 用户看这里
+
+`skills/` 目录下是标准 Claude Code 技能，可被 `/skill-name` 直接调用：
+
+| 技能 | 路径 | 功能 |
+|---|---|---|
+| **android-monitor** | `skills/android-monitor/` | 后台监控守护进程 + 防沉迷 + 事件推送 |
+| └ sensors | `skills/android-monitor/sensors/` | 43 传感器速查手册 |
+| └ sms | `skills/android-monitor/sms/` | 短信轮询 + 自动回复 |
+| **phone-control** | `skills/phone-control/` | 锁屏/杀应用/切歌/截图 |
+| **phone-notify** | `skills/phone-notify/` | 通知栏 + 日历操作 |
+| **phone-sensors** | `skills/phone-sensors/` | 屏幕/前台App/电量/步数/光线 |
+
+> ⚠️ 使用前需按技能文档配置：包名列表、路径、ADB 连接方式。详见各 `SKILL.md` 的 Configuration 段落。
 
 ---
 
