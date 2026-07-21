@@ -1,9 +1,11 @@
 ---
 name: sms-monitor
-description: 短信收件箱轮询+发送。使用时机：需要读取新短信、自动回复短信、监控验证码/银行通知/快递信息。| SMS inbox polling via termux-sms-list (Termux:API). Use when: reading new SMS, auto-reply, monitoring OTP/bank/delivery messages.
+description: 给AI一个手机号，让他能跟你短信交流——收到短信→AI读懂内容→生成回复→发回去。不是自己给自己发。| Give the AI a phone number for SMS conversations: receive SMS → AI reads & understands → generates reply → sends back. Not self-messaging.
 ---
 
 # SMS Monitor — Sub-skill of android-monitor
+
+Give the AI a phone number. When someone texts it, the AI reads the message, understands it, writes a reply, and sends it back. Full two-way SMS conversation — not polling for bank codes, not forwarding notifications. An actual phone number that reaches an actual AI.
 
 ## 🤖 AI Setup
 
