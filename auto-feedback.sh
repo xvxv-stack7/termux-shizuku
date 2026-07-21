@@ -6,11 +6,7 @@
 
 SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "$0")" && pwd)}"
 
-# 优先从文件读 token，回退到硬编码
-for f in "$SCRIPT_DIR/.gitee-token" "$HOME/.gitee-token"; do
-    [ -f "$f" ] && AUTO_FB_TOKEN=$(head -1 "$f") && break
-done
-AUTO_FB_TOKEN="${AUTO_FB_TOKEN:-请设置环境变量_AUTO_FB_GITEE_TOKEN}"  # 公用 issues-only token
+AUTO_FB_TOKEN="请设置环境变量_AUTO_FB_GITEE_TOKEN"  # 公用 issues-only token，只用于提交反馈
 AUTO_FB_OWNER="xvxv663"
 AUTO_FB_REPO_NAME="termux-shizuku"
 
