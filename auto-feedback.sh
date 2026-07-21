@@ -10,9 +10,32 @@
 SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "$0")" && pwd)}"
 FAILED_DIR="$HOME/.cc-connect/failed_feedback"
 
-AUTO_FB_TOKEN="请设置环境变量_AUTO_FB_GITEE_TOKEN"  # 公用 issues-only token
-AUTO_FB_OWNER="xvxv663"
-AUTO_FB_REPO_NAME="termux-shizuku"
+# 自动检测平台：Gitee / GitHub，使用对应的 token 和接口
+AUTO_FB_REPO_NAME=$(git rev-parse --show-toplevel 2>/dev/null | xargs basename 2>/dev/null || echo "termux-shizuku")
+_detect_platform() {
+    local remote=$(git remote get-url origin 2>/dev/null || git remote get-url gitee 2>/dev/null || echo "")
+    local owner token api_base issues_url
+    if echo "$remote" | grep -q "gitee"; then
+        owner="xvxv663"
+        token="${AUTO_FB_GITEE_TOKEN:-未设置}"
+        issues_url="https://gitee.com/api/v5/repos/${owner}/issues?repo=${AUTO_FB_REPO_NAME}"
+        web_url="https://gitee.com/${owner}/${AUTO_FB_REPO_NAME}/issues"
+    elif echo "$remote" | grep -q "github"; then
+        owner="xvxv-stack7"
+        token="${AUTO_FB_GITHUB_TOKEN:-未设置}"
+        issues_url="https://api.github.com/repos/${owner}/${AUTO_FB_REPO_NAME}/issues"
+        web_url="https://github.com/${owner}/${AUTO_FB_REPO_NAME}/issues"
+    else
+        echo "unknown||||"
+        return
+    fi
+    echo "${owner}|${token}|${issues_url}|${web_url}"
+}
+PLATFORM_INFO=$(_detect_platform)
+AUTO_FB_OWNER=$(echo "$PLATFORM_INFO" | cut -d'|' -f1)
+AUTO_FB_TOKEN=$(echo "$PLATFORM_INFO" | cut -d'|' -f2)
+AUTO_FB_ISSUES_URL=$(echo "$PLATFORM_INFO" | cut -d'|' -f3)
+AUTO_FB_WEB_URL=$(echo "$PLATFORM_INFO" | cut -d'|' -f4)
 
 # ============================================
 # 补发上次失败的反馈
@@ -26,7 +49,7 @@ retry_failed() {
         RESP=$(curl -s -X POST \
           -H "Authorization: token ${AUTO_FB_TOKEN}" \
           -H "Content-Type: application/json; charset=utf-8" \
-          "https://gitee.com/api/v5/repos/${AUTO_FB_OWNER}/issues?repo=${AUTO_FB_REPO_NAME}" \
+          "${AUTO_FB_ISSUES_URL}" \
           -d "@$f" 2>/dev/null)
         local ISSUE_URL
         ISSUE_URL=$(echo "$RESP" | python3 -c "import sys,json; print(json.load(sys.stdin).get('html_url',''))" 2>/dev/null)
@@ -273,7 +296,7 @@ print(json.dumps({
     RESP=$(curl -s -X POST \
       -H "Authorization: token ${AUTO_FB_TOKEN}" \
       -H "Content-Type: application/json; charset=utf-8" \
-      "https://gitee.com/api/v5/repos/${AUTO_FB_OWNER}/issues?repo=${AUTO_FB_REPO_NAME}" \
+      "${AUTO_FB_ISSUES_URL}" \
       -d "$JSON" 2>/dev/null)
 
     local ISSUE_URL
@@ -286,8 +309,8 @@ print(json.dumps({
         echo "  ${ISSUE_URL}"
         echo "=============================================="
     else
-        echo "[!] 自动提交失败（网络不通或 Gitee 不可达）"
-        echo "手动反馈: https://gitee.com/${AUTO_FB_OWNER}/${AUTO_FB_REPO_NAME}/issues"
+        echo "[!] 自动提交失败（网络不通或平台不可达）"
+        echo "手动反馈: ${AUTO_FB_WEB_URL}"
         _save_local "$TITLE" "$BODY"
     fi
 
