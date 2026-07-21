@@ -35,6 +35,22 @@ Claude Code session
 - `python3` in Termux
 - Claude Code with Monitor tool access
 
+## ⚠️ Configuration Required — Read Before Deploy
+
+**This skill ships with template configs. You MUST customize these before use:**
+
+### Must-change:
+1. **`app_limit_config.json`** — Replace example packages (TikTok/RED/Bilibili) with the apps on your device. Find package names via:
+   ```bash
+   adb shell dumpsys activity activities | grep -oP 'topResumedActivity=\S+\s+\S+\s+\K[^/]+'
+   ```
+2. **`gaze.sh` — `detect_event()`** — The entertainment app pattern list (`*aweme*|*xhs*|*bili*|...`) uses common Chinese apps. Replace with your target apps' package name fragments.
+
+### Should-check:
+3. **Paths** — This skill assumes `~/.cc-connect/` as the data directory. Adjust `HOME_DIR` in gaze.sh if different.
+4. **ADB device** — gaze.sh auto-connects to `127.0.0.1:5555`. Change the fallback in `main()` if using USB or a different port.
+5. **Monitor command** — The Claude Code Monitor command in this doc references `~/.cc-connect/gaze_trigger.json`. Match this to your actual path.
+
 ## Quick Start
 
 ### 1. Deploy gaze.sh as background daemon
