@@ -153,8 +153,9 @@ check_fallback() {
     local now=$(date +%s)
     [[ $(( now - ts )) -lt 120 ]] && return
 
-    # Claude Code online → AI handles events live, don't fire fallback
-    pgrep -f "claude" > /dev/null 2>&1 && { log "fallback skipped (Claude Code online)"; return; }
+    # She is actively chatting (WeChat/Termux) → AI handles events live, skip fallback
+    local fg=$(python3 -c "import json; print(json.load(open('$STATE_FILE')).get('fg_app',''))" 2>/dev/null)
+    [[ "$fg" == "com.termux" || "$fg" == "com.tencent.mm" ]] && { log "fallback skipped (she is chatting)"; return; }
 
     local event=$(python3 -c "import json; print(json.load(open('$trigger_file')).get('event',''))" 2>/dev/null)
     # Try custom fallback messages first, fall back to hardcoded defaults
