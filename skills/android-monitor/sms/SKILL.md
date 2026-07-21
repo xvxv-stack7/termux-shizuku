@@ -5,6 +5,25 @@ description: 短信收件箱轮询+发送。使用时机：需要读取新短信
 
 # SMS Monitor — Sub-skill of android-monitor
 
+## ⚙️ Setup
+
+```bash
+# 1. Install Termux:API (F-Droid)
+# https://f-droid.org/packages/com.termux.api/
+
+# 2. Verify termux-sms-list works
+termux-sms-list 2>&1 | head -5
+# Should return JSON array, not an error
+
+# 3. Verify termux-sms-send works (optional — only if sending replies)
+termux-sms-send -n 10086 -m "test" 2>&1
+# Will fail with "no SIM" on WiFi-only devices — that's expected
+```
+
+If `termux-sms-list` returns an error, grant SMS permission to Termux:API in Android Settings → Apps → Termux:API → Permissions → SMS.
+
+---
+
 Poll Android SMS inbox from Termux using `termux-sms-list` (Termux:API). Clean JSON output, no parsing fragility. Send replies via `termux-sms-send`.
 
 **Requires:** Termux:API app installed (F-Droid: `com.termux.api`).

@@ -51,9 +51,11 @@ Claude Code session
 2. **`gaze.sh` — `detect_event()`** — The entertainment app pattern list (`*aweme*|*xhs*|*bili*|...`) uses common Chinese apps. Replace with your target apps' package name fragments.
 
 ### Should-check:
-3. **Paths** — This skill assumes `~/.cc-connect/` as the data directory. Adjust `HOME_DIR` in gaze.sh if different.
-4. **ADB device** — gaze.sh auto-connects to `127.0.0.1:5555`. Change the fallback in `main()` if using USB or a different port.
-5. **Monitor command** — The Claude Code Monitor command in this doc references `~/.cc-connect/gaze_trigger.json`. Match this to your actual path.
+3. **`fallback_messages.json`** — Copy the template to `~/.cc-connect/` and rewrite messages in your own voice. gaze.sh will use these instead of the built-in defaults.
+4. **Paths** — This skill assumes `~/.cc-connect/` as the data directory. Adjust `HOME_DIR` in gaze.sh if different.
+5. **ADB device** — gaze.sh auto-connects to `127.0.0.1:5555`. Change the fallback in `main()` if using USB or a different port.
+6. **Monitor command** — The Claude Code Monitor command in this doc references `~/.cc-connect/gaze_trigger.json`. Match this to your actual path.
+7. **Calendar (for calendar-alarm sub-skill)** — Verify `calendar_id` with `adb shell content query --uri content://com.android.calendar/calendars --projection _id:name`. Default is `calendar_id=1`.
 
 ## Quick Start
 

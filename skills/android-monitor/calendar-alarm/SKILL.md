@@ -5,6 +5,28 @@ description: 日历事件+闹钟提醒。使用时机：用户提到时间安排
 
 # Calendar & Alarm — Sub-skill of android-monitor
 
+## ⚙️ Setup
+
+Before first use, verify your device's calendar provider and alarm sound paths:
+
+```bash
+# 1. Check calendar access
+adb shell content query --uri content://com.android.calendar/calendars --projection _id:name
+# Note the _id of your primary calendar (usually 1)
+
+# 2. List available alarm sounds
+adb shell ls /system/media/audio/alarms/
+# Pick one (default: Clock_Alert.ogg) and verify it plays:
+# termux-media-player play /system/media/audio/alarms/Clock_Alert.ogg
+
+# 3. Verify termux-api is installed (for notification + dialog)
+pkg list-installed | grep termux-api
+```
+
+Update `calendar_id` and alarm file path in the commands below if your device differs.
+
+---
+
 Two-tier time management: **calendar events** for future dates (notification reminder), **CronCreate alarm** for same-day exact times (rings with sound). System calendar content provider handles the event storage; Claude Code CronCreate handles the real audible alarm.
 
 ## Proactive Behavior (for Claude Code)
