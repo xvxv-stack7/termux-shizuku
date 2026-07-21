@@ -129,6 +129,7 @@ Called automatically by gaze.sh every loop — no separate process needed.
 | `app_limit_config.json` | Per-app daily minute limits |
 | `sensors/SKILL.md` | 43-sensor reference catalog |
 | `sms/SKILL.md` | SMS inbox polling via ADB content provider |
+| `calendar-alarm/SKILL.md` | Calendar events with alarm reminders |
 | `gaze_state.json` | Current device snapshot (written by gaze.sh) |
 | `gaze_trigger.json` | Latest event trigger (consumed by Monitor) |
 | `sentinel.log` | Event log |
@@ -207,6 +208,7 @@ The Monitor hook adds near-zero token overhead when idle — it only pushes when
 
 - **[Sensors Reference](sensors/SKILL.md)** — 43-sensor catalog with composite inference patterns
 - **[SMS Monitor](sms/SKILL.md)** — SMS inbox polling + content forwarding via ADB
+- **[Calendar Alarm](calendar-alarm/SKILL.md)** — Calendar events with alarm-style reminders via content provider
 
 ## Customization
 

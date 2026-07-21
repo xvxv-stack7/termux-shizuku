@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.4.1 (2026-07-21)
+
+### 新增
+- **android-monitor/calendar-alarm 子技能**：日历事件+闹钟提醒（content provider 双步插入）
+  - 事件插入 + 提醒插入（minutes=0 = 准时闹钟模式）
+  - Python 辅助脚本 calendar_alarm.py
+  - 主动行为指南：Claude Code 自动解析时间意图并写入系统日历
+
+---
+
 ## v0.4.0 (2026-07-21)
 
 ### 新增
