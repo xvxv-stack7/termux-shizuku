@@ -12,35 +12,56 @@ import subprocess, sys, os, json, xml.etree.ElementTree as ET
 
 def run_dump():
     """Dump UI hierarchy via Shizuku or ADB, return raw XML text.
-    Dumps to temp file first (more compatible than /dev/tty), then cats it.
+
+    Strategy (OEM-resilient):
+    1. Try /dev/tty first (AOSP standard, no file I/O) — works on stock Android, Samsung, vivo newer models
+    2. Fall back to file dump (more compatible: vivo older, Xiaomi MIUI)
+    3. MIUI returns non-zero exit code even on success — we check XML content, not exit code
     """
     DUMP_PATH = "/sdcard/ui_dump.xml"
 
     def _try(channel_cmd):
         """channel_cmd is a list like ['rish','-c'] or ['adb','-s','127...','shell']"""
         try:
-            # Dump to file
-            dump = subprocess.run(channel_cmd + [f"uiautomator dump {DUMP_PATH}"],
-                                 capture_output=True, text=True, timeout=15)
-            # Read the file
-            cat = subprocess.run(channel_cmd + [f"cat {DUMP_PATH}"],
-                                capture_output=True, text=True, timeout=10)
-            out = cat.stdout.strip()
+            # Method 1: /dev/tty (fast, no file I/O)
+            r = subprocess.run(channel_cmd + ["uiautomator dump /dev/tty"],
+                              capture_output=True, text=True, timeout=15)
+            out = r.stdout.strip()
+            # MIUI: exit code may be non-zero but XML still present
+            if out:
+                # Some devices prepend status line — strip to find XML
+                xml_start = out.find("<?xml")
+                if xml_start < 0:
+                    xml_start = out.find("<hierarchy")
+                if xml_start >= 0:
+                    return out[xml_start:]
+
+        except Exception:
+            pass
+
+        try:
+            # Method 2: file dump (more compatible, e.g. vivo OriginOS)
+            subprocess.run(channel_cmd + [f"uiautomator dump {DUMP_PATH}"],
+                          capture_output=True, text=True, timeout=15)
+            # Ignore exit code — MIUI bug: non-zero even with valid XML
+            r2 = subprocess.run(channel_cmd + [f"cat {DUMP_PATH}"],
+                               capture_output=True, text=True, timeout=10)
+            out = r2.stdout.strip()
             if out and "<" in out:
-                return out
+                xml_start = out.find("<?xml")
+                if xml_start < 0:
+                    xml_start = out.find("<hierarchy")
+                if xml_start >= 0:
+                    return out[xml_start:]
         except Exception:
             pass
         return None
 
     # Try Shizuku first
-    result = _try(["rish", "-c"])
-    if result:
-        return result
-
-    # Fall back to ADB
-    result = _try(["adb", "-s", "127.0.0.1:5555", "shell"])
-    if result:
-        return result
+    for cmd in [["rish", "-c"], ["adb", "-s", "127.0.0.1:5555", "shell"]]:
+        result = _try(cmd)
+        if result:
+            return result
 
     print("Error: no shell channel available (Shizuku down, ADB not connected)", file=sys.stderr)
     sys.exit(1)

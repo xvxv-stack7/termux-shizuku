@@ -78,9 +78,10 @@ adb -s 127.0.0.1:5555 shell input tap <x> <y>
 
 ## OEM Notes
 
-- ✅ **vivo S19 (OriginOS 5 / API 35)** — fully tested 2026-07-21. Dump to file works, `/dev/tty` mode not supported.
-- Works on all Android 5.0+ devices — `uiautomator` is AOSP
-- Some OEMs may take 1-2s longer on first dump after reboot (cold start)
-- Huawei EMUI 12+: works (different subsystem than `dumpsys activity`)
-- If `uiautomator` not found, check that the device isn't in headless/kiosk mode
-- `/dev/tty` mode varies by OEM. File dump to `/sdcard/ui_dump.xml` is the universal fallback.
+- ✅ **vivo S19 (OriginOS 5 / API 35)** — fully tested 2026-07-21. File dump works, `/dev/tty` not supported.
+- ⚠️ **Xiaomi MIUI / HyperOS** — known bug: `uiautomator dump` returns non-zero exit code even when XML is valid (missing theme_compatibility.xml). Script handles this — checks XML content, not exit code.
+- ✅ Works on all Android 5.0+ devices — `uiautomator` is AOSP
+- ✅ **Samsung One UI** — `/dev/tty` typically works, file dump as backup
+- ⚠️ **Huawei EMUI 12+/HarmonyOS 3.x/4.x** — works (different subsystem than `dumpsys activity`). HarmonyOS NEXT: untested (no ADB)
+- Two dump methods tried automatically: `/dev/tty` (AOSP standard) → file dump (`/sdcard/ui_dump.xml`). Whichever works first wins.
+- First dump after reboot may take 1-2s longer (cold start)
