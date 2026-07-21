@@ -14,11 +14,19 @@ log() { echo "[$(date '+%m-%d %H:%M:%S')] $*" >> "$LOG_FILE"; }
 
 get_device() { adb devices 2>/dev/null | grep -oP '^\S+' | grep -v "List" | head -1; }
 
-adb_sh() {
+# Dual-channel shell: Shizuku rish first, ADB fallback
+sh_cmd() {
+    if command -v rish &>/dev/null && timeout 2 rish -c 'id' &>/dev/null; then
+        timeout 5 rish -c "$*" 2>/dev/null && return 0
+    fi
     local dev=$(get_device)
+    [[ -z "$dev" ]] && { adb connect 127.0.0.1:5555 &>/dev/null; sleep 1; dev=$(get_device); }
     [[ -z "$dev" ]] && return 1
     timeout 5 adb -s "$dev" shell "$@" 2>/dev/null
 }
+
+# Backward-compatible alias
+adb_sh() { sh_cmd "$@"; }
 
 collect_state() {
     local now=$(date +%s)

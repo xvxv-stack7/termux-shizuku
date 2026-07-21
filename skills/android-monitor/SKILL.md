@@ -28,6 +28,7 @@ Claude Code session
 ```
 
 - **gaze.sh** runs as a background daemon (60s poll interval)
+- **Dual-channel shell**: `sh_cmd()` tries **Shizuku rish** first (binder IPC, no WiFi needed), falls back to **ADB over TCP** (127.0.0.1:5555). All shell commands automatically use this channel — no separate config required.
 - Events go through **Monitor** (event-driven, not cron-polled) to Claude Code
 - Claude Code generates natural-language **termux-notification** messages in real time
 - Offline **fallback**: if no Claude Code session consumes the trigger within 120s, gaze.sh fires a template notification
@@ -36,7 +37,9 @@ Claude Code session
 ## Requirements
 
 - Android device with Termux
-- ADB over TCP (127.0.0.1:5555) or USB
+- **Shizuku** (recommended) — binder IPC, no WiFi dependency, survives reboot
+- **ADB over TCP** (fallback) — 127.0.0.1:5555, works without Shizuku
+- At least one of the above must be active. `sh_cmd()` in gaze.sh auto-detects and picks the available channel.
 - `termux-notification` (termux-api package)
 - `python3` in Termux
 - Claude Code with Monitor tool access
