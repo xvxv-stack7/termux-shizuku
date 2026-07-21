@@ -162,6 +162,7 @@ fi
 | `midnight_phone` | Screen on at 23:00–06:00 (once/night) | "Late night screen time." |
 | `left_chat` | Left WeChat/Termux → entertainment app | "Left chat to browse." |
 | `random_glance` | Random 3%/loop check-in (min 30min gap) | "Random check-in." |
+| `music_moment` | Bluetooth A2DP active + daytime + 2%/loop (min 40min gap) | "Music moment — headphones on, playing a song." |
 | `long_silence` | No state change > 2.5h | "No activity for a while." |
 
 ## Anti-Addiction (app_limit.sh)

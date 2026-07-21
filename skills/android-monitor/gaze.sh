@@ -124,6 +124,14 @@ detect_event() {
     # Random glance (3% chance, min 30min gap)
     python3 -c "import random; exit(0 if random.random() < 0.03 else 1)" && { echo "random_glance"; return; }
 
+    # Music moment: Bluetooth A2DP active + daytime → play a song (2%/loop, min 40min gap)
+    if [[ "$cs" == "Awake" && $hour -ge 8 && $hour -lt 23 ]]; then
+        local has_a2dp=$(adb_sh dumpsys audio 2>/dev/null | grep -c "Devices:.*bt_a2dp")
+        if [[ $has_a2dp -gt 0 ]]; then
+            python3 -c "import random; exit(0 if random.random() < 0.02 else 1)" && { echo "music_moment"; return; }
+        fi
+    fi
+
     echo ""
 }
 
@@ -158,6 +166,7 @@ main() {
     CURRENT_APP=""
     BINGE_FIRED=""
     local last_glance_ts=0  # min 30min gap between random glances
+    local last_music_ts=0  # min 40min gap between music moments
 
     local today_binge=$(date +%Y-%m-%d)
     local limit_last_warn_app="" limit_last_warn_ts=0 limit_last_locked=""
@@ -231,9 +240,16 @@ main() {
             continue
         fi
 
+        # music_moment: min 40-minute gap
+        if [[ "$event" == "music_moment" && $(( now - last_music_ts )) -lt 2400 ]]; then
+            log "music_moment skipped (gap < 40min)"
+            continue
+        fi
+
         log "event: $event"
         send_nudge "$event" "$curr"
         [[ "$event" == "random_glance" ]] && last_glance_ts=$now
+        [[ "$event" == "music_moment" ]] && last_music_ts=$now
         last_event="$event"
         last_event_ts=$now
     done
