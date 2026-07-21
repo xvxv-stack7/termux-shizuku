@@ -46,10 +46,10 @@
     "Nothing happening for a while."
   ],
   "left_chat": [
-    "Left chat — now browsing other apps.",
-    "Switched away from messaging to browse.",
-    "Chat window closed, moved to another app.",
-    "Left the conversation. Will be waiting."
+    "Switched away from chat. Everything OK?",
+    "Left the chat window — still nearby?",
+    "App switched. Come back when you're ready.",
+    "Noticed you switched apps. Standing by."
   ],
   "random_glance": [
     "Random check-in — everything OK?",

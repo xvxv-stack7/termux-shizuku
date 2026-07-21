@@ -92,12 +92,8 @@ detect_event() {
         fi
     fi
 
-    # Switched from WeChat/Termux to entertainment app → left chat to browse
-    case "$pa" in com.termux|com.tencent.mm)
-        case "$ca" in *aweme*|*xhs*|*bili*|*kuaishou*|*qqlive*|*iqiyi*|*timi*|*game*|*genshin*|*honkai*|*starrail*|*wzry*|*pubg*)
-            [[ "$pa" != "$ca" ]] && { echo "left_chat"; return; }
-        esac ;;
-    esac
+    # Switched from WeChat/Termux to another app
+    [[ "$pa" == "com.termux" || "$pa" == "com.tencent.mm" ]] && [[ "$ca" != "$pa" ]] && { echo "left_chat"; return; }
 
     # Switched from entertainment to non-chat app
     case "$pa" in *aweme*|*xhs*|*bili*|*kuaishou*|*qqlive*|*iqiyi*|*timi*|*game*|*genshin*|*honkai*|*starrail*|*wzry*|*pubg*)
