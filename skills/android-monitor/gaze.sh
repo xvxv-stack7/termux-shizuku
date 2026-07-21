@@ -151,7 +151,7 @@ check_fallback() {
     [[ "$consumed" == "True" || "$consumed" == "true" ]] && return
     local ts=$(python3 -c "import json; print(json.load(open('$trigger_file')).get('ts',0))" 2>/dev/null || echo 0)
     local now=$(date +%s)
-    [[ $(( now - ts )) -lt 120 ]] && return
+    [[ $(( now - ts )) -lt 60 ]] && return
 
     # She is actively chatting (WeChat/Termux) → AI handles events live, skip fallback
     local fg=$(python3 -c "import json; print(json.load(open('$STATE_FILE')).get('fg_app',''))" 2>/dev/null)

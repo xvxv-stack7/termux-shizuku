@@ -21,7 +21,7 @@ gaze.sh (system daemon, 60s loop)
   ├─ detect_event()      → screen wake, walking, binge, low battery, midnight
   ├─ app_limit.sh        → cumulative time tracking + force-stop at threshold
   ├─ send_nudge()        → writes lightweight trigger for Claude Code Monitor
-  └─ check_fallback()    → termux-notification if trigger unread for 120s
+  └─ check_fallback()    → termux-notification if trigger unread for 60s
 
 Claude Code session
   └─ Monitor (persistent) → watches trigger file → AI generates notification message
@@ -31,7 +31,7 @@ Claude Code session
 - **Dual-channel shell**: `sh_cmd()` tries **Shizuku rish** first (binder IPC, no WiFi needed), falls back to **ADB over TCP** (127.0.0.1:5555). All shell commands automatically use this channel — no separate config required.
 - Events go through **Monitor** (event-driven, not cron-polled) to Claude Code
 - **The AI generates every message live** — no templates, no canned responses. Each trigger is a moment: the AI reads the event, looks at the user's current state (what app, what time, how many steps), and writes a unique message in its own voice.
-- Offline **fallback**: if no Claude Code session consumes the trigger within 120s, gaze.sh fires from `fallback_messages.json`. This is the **last resort** — treat it as a backup, not the primary channel. Customize the template file to match your AI's personality, but never rely on it when the AI is online.
+- Offline **fallback**: if no Claude Code session consumes the trigger within 60s, gaze.sh fires from `fallback_messages.json`. This is the **last resort** — treat it as a backup, not the primary channel. Customize the template file to match your AI's personality, but never rely on it when the AI is online.
 - **app_limit.sh** tracks cumulative daily usage per app and force-stops on limit
 
 ## Requirements
@@ -176,7 +176,7 @@ fi
 Tracks **cumulative daily usage** per app (not just continuous session). Logic:
 
 - Each loop tick: if foreground app is in the config, accumulate elapsed seconds since last check
-- Gap ≤ 120s counts as continuous; longer gaps do not accumulate
+- Gap ≤ 60s counts as continuous; longer gaps do not accumulate
 - **80% threshold** → `warned_N` → termux-toast with remaining minutes (every 5 min max)
 - **100% threshold** → `locked` → `am force-stop` + home key + toast
 - Resets at midnight
