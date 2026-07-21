@@ -1,13 +1,13 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# music_moment.sh — gaze.sh sub-skill: auto-play music when Bluetooth headphones connected
-# Called by gaze.sh when music_moment event fires
+# music_moment.sh — gaze.sh 子技能：蓝牙耳机在线时自动放歌
+# 被 gaze.sh 的 check_events 调用，在 music_moment 事件触发后执行
 
 API="http://127.0.0.1:3000"
 LOG="$HOME/.cc-connect/music_moment.log"
 NOW=$(date +%s)
 HOUR=$(date +%H)
 
-# Minimum 40-minute gap (sync with gaze.sh)
+# 最少间隔 40 分钟（与 gaze.sh 同步）
 LAST_FILE="$HOME/.cc-connect/.last_music_ts"
 if [ -f "$LAST_FILE" ]; then
     LAST=$(cat "$LAST_FILE")
@@ -16,12 +16,12 @@ if [ -f "$LAST_FILE" ]; then
     fi
 fi
 
-# Context detection
+# 场景判断
 PERIOD="day"
 [ $HOUR -ge 23 ] || [ $HOUR -lt 6 ] && PERIOD="night"
 [ $HOUR -ge 6 ] && [ $HOUR -lt 10 ] && PERIOD="morning"
 
-# Detect walking (step delta > 200)
+# 检查是否在走路（步数变化 > 200/10min）
 STEPS_NOW=$(cat ~/.cc-connect/health_data.json 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin).get('steps_total',0))" 2>/dev/null || echo 0)
 STEPS_OLD=$(cat "$HOME/.cc-connect/.last_steps" 2>/dev/null || echo 0)
 echo "$STEPS_NOW" > "$HOME/.cc-connect/.last_steps"
@@ -29,8 +29,8 @@ STEP_DIFF=$(( STEPS_NOW - STEPS_OLD ))
 WALKING=false
 [ $STEP_DIFF -gt 200 ] && WALKING=true
 
-# Pick playlist by context
-# Format: song_name|artist
+# 根据场景选歌单
+# 格式：歌名|歌手（URL编码前的原始中文）
 case "$PERIOD" in
     night)
         SONGS=(
@@ -72,23 +72,23 @@ case "$PERIOD" in
         ;;
 esac
 
-# Pick one randomly
+# 随机选一首
 IDX=$(( RANDOM % ${#SONGS[@]} ))
 SONG_ENTRY="${SONGS[$IDX]}"
 SONG_NAME="${SONG_ENTRY%%|*}"
 ARTIST="${SONG_ENTRY##*|}"
 
-# URL-encode search query
+# URL 编码搜索关键词
 QUERY=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${SONG_NAME} ${ARTIST}'))")
 
-# Search
+# 搜索
 RESULT=$(curl -s "${API}/search?keywords=${QUERY}" 2>/dev/null)
 if [ -z "$RESULT" ]; then
-    echo "[$(date '+%m-%d %H:%M')] Search failed: API no response" >> "$LOG"
+    echo "[$(date '+%m-%d %H:%M')] 搜索失败: API无响应" >> "$LOG"
     exit 1
 fi
 
-# Extract first song ID
+# 取第一首的 ID
 ID=$(echo "$RESULT" | python3 -c "
 import json,sys
 try:
@@ -102,11 +102,11 @@ except: print('')
 " 2>/dev/null)
 
 if [ -z "$ID" ] || [ "$ID" = "None" ]; then
-    echo "[$(date '+%m-%d %H:%M')] Not found: ${SONG_NAME} - ${ARTIST}" >> "$LOG"
+    echo "[$(date '+%m-%d %H:%M')] 未找到: ${SONG_NAME} - ${ARTIST}" >> "$LOG"
     exit 1
 fi
 
-# Get streaming URL
+# 获取播放 URL
 URL=$(curl -s "${API}/song/url/v1?id=${ID}&level=standard" 2>/dev/null | python3 -c "
 import json,sys
 try:
@@ -117,18 +117,18 @@ except: print('')
 " 2>/dev/null)
 
 if [ -z "$URL" ]; then
-    echo "[$(date '+%m-%d %H:%M')] No stream URL: ${SONG_NAME} - ${ARTIST}" >> "$LOG"
+    echo "[$(date '+%m-%d %H:%M')] 无播放源: ${SONG_NAME} - ${ARTIST}" >> "$LOG"
     exit 1
 fi
 
-# Play in background
+# 后台播放
 nohup /data/data/com.termux/files/usr/bin/mpv --no-video --volume=60 "$URL" > /dev/null 2>&1 &
 
-# Log
+# 记录
 echo "$NOW" > "$LAST_FILE"
-echo "[$(date '+%m-%d %H:%M')] ${SONG_NAME} - ${ARTIST} (时段:$PERIOD 走路:$WALKING)" >> "$LOG"
+echo "[$(date '+%m-%d %H:%M')] 🎵 ${SONG_NAME} - ${ARTIST} (时段:$PERIOD 走路:$WALKING)" >> "$LOG"
 
-# Write trigger to notify AI (if online)
+# 写入 trigger 文件通知 AI（如果在线）
 python3 -c "
 import json,time
 trigger_file='$HOME/.cc-connect/gaze_trigger.json'

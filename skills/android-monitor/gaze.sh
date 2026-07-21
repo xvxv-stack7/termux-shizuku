@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# Sentinel daemon — state-aware proactive notifications
-# Runs as long as Termux is alive. Watchdog auto-restarts on crash.
+# 第六感哨兵 — 状态感知主动消息
+# 只要Termux开着就一直跑。挂了由watchdog自动拉起来。
 
 HOME_DIR="${HOME}"
 STATE_FILE="${HOME_DIR}/.cc-connect/gaze_state.json"
@@ -13,7 +13,7 @@ log() { echo "[$(date '+%m-%d %H:%M:%S')] $*" >> "$LOG_FILE"; }
 
 get_device() { adb devices 2>/dev/null | grep -oP '^\S+' | grep -v "List" | head -1; }
 
-# Dual-channel shell: Shizuku rish preferred, ADB fallback
+# 双通道shell：Shizuku rish优先，ADB后备
 sh_cmd() {
     if command -v rish &>/dev/null && timeout 2 rish -c 'id' &>/dev/null; then
         timeout 5 rish -c "$*" 2>/dev/null && return 0
@@ -24,7 +24,7 @@ sh_cmd() {
     timeout 5 adb -s "$dev" shell "$@" 2>/dev/null
 }
 
-# All adb_sh calls go through dual-channel automatically
+# 所有adb_sh调用自动走双通道
 adb_sh() { sh_cmd "$@"; }
 
 collect_state() {
@@ -32,7 +32,7 @@ collect_state() {
     local screen=$(adb_sh dumpsys power 2>/dev/null | grep -oP 'mWakefulness=\K\w+' || echo "unknown")
     local steps=-1
     [[ -f "$HEALTH_FILE" ]] && steps=$(python3 -c "import json; d=json.load(open('$HEALTH_FILE')); print(d.get('steps_total',-1))" 2>/dev/null || echo -1)
-    # Multi-OEM foreground app detection: AOSP → MIUI → generic fallback
+    # 多OEM前台app检测：AOSP→MIUI→通用回退
     local fg_app=""
     local dumpsys_out=$(adb_sh dumpsys activity activities 2>/dev/null)
     fg_app=$(echo "$dumpsys_out" | grep -oP '(topResumedActivity|mResumedActivity|mFocusedActivity)=ActivityRecord\{[^ ]+ \S+ \K[^ /]+' | head -1)
@@ -66,9 +66,9 @@ send_nudge() {
     local ts=$(date +%s)
     local trigger_file="${HOME_DIR}/.cc-connect/gaze_trigger.json"
 
-    # Dual-channel dispatch:
-    # Important → Monitor overlay (triggers Claude Code attention)
-    # Non-critical → system notification (informational only)
+    # 区分推送通道：
+    # 重要的 → Monitor 浮动卡（终端中间，我需要看到并处理）
+    # 不重要的 → 通知栏弹窗（让她知道即可，不吵我）
     case "$event" in
         woke_up|binge_app|low_battery|midnight_phone)
             python3 -c "
@@ -78,13 +78,13 @@ json.dump({'event':'$event','fg_app':'$ca','battery':'$cb','screen':'$cs','ts':i
         *)
             local title=""
             case "$event" in
-                left_chat)      title="App switch detected" ;;
-                random_glance)  title="Random glance" ;;
-                gaming_end)     title="Game closed" ;;
-                started_walking) title="Walking detected" ;;
-                stopped)        title="Inactive" ;;
-                long_silence)   title="Long silence" ;;
-                music_moment)   title="Music moment" ;;
+                left_chat)      title="💨 切走了" ;;
+                random_glance)  title="👋 瞟一眼" ;;
+                gaming_end)     title="🎮 游戏关了" ;;
+                started_walking) title="🚶 走起来了" ;;
+                stopped)        title="🛑 停住了" ;;
+                long_silence)   title="🔇 安静太久了" ;;
+                music_moment)   title="🎵 音乐时刻" ;;
             esac
             [[ -n "$title" ]] && termux-notification --id "gaze_$ts" --title "$title" --priority max 2>/dev/null &
             ;;
@@ -121,16 +121,16 @@ main() {
         curr=$(collect_state 2>/dev/null || echo "{}")
         local prev=$(cat "$STATE_FILE" 2>/dev/null || echo "$curr")
 
-        # music_moment pre-check: Bluetooth A2DP (daytime only, passed to detect.py)
+        # 音乐时刻前置：查蓝牙耳机（白天才查，给 detect.py 用）
         local hour_now=$(date +%H)
         local has_a2dp=0
         [[ $hour_now -ge 8 && $hour_now -lt 23 ]] && has_a2dp=$(adb_sh dumpsys audio 2>/dev/null | grep -c "Devices:.*bt_a2dp")
 
-        # Single Python call: field extraction + 11 event rules (replaces 12+ python3 -c calls)
+        # 一次 Python 调用：字段提取 + 11 种事件检测（替代原来 12+ 次 python3 -c）
         eval "$(detect_and_extract "$prev" "$curr" "$BINGE_FIRED" "$has_a2dp")"
-        # detect.py outputs shell variables: event ca ct cs cb
+        # detect.py 输出 shell 变量: event ca ct cs cb
 
-        # Reset binge dedup on date change
+        # 日期变了重置 binge 防重复
         local today_now=$(date +%Y-%m-%d)
         if [[ "$today_now" != "$today_binge" ]]; then
             BINGE_FIRED=""
@@ -150,14 +150,14 @@ main() {
                     limit_last_locked="$ca"
                     local lock_msg
                     case "$ca" in
-                        *aweme*) lock_msg="Screen time limit reached. App locked to protect your eyes." ;;
-                        *xhs*) lock_msg="Time limit reached. App locked — go do something else." ;;
-                        *bili*) lock_msg="Daily limit reached. App locked for today." ;;
-                        *gif*) lock_msg="Too much short video. App locked — take a break." ;;
+                        *aweme*) lock_msg="抖音使用时长已超限，该休息了。" ;;
+                        *xhs*) lock_msg="小红书使用时长已超限，该休息了。" ;;
+                        *bili*) lock_msg="B站今日使用时长已用完，明天再来。" ;;
+                        *gif*) lock_msg="快手使用时长已超限，起来活动一下吧。" ;;
                         *game*|*timi*|*sgame*|*pubg*|*genshin*|*honkai*|*starrail*|*wzry*)
-                            lock_msg="Gaming time over. App locked for today." ;;
-                        *qqlive*|*iqiyi*) lock_msg="Video limit reached. Locked until tomorrow." ;;
-                        *) lock_msg="Daily app limit reached. Locked." ;;
+                            lock_msg="游戏时间已用完，该休息了。" ;;
+                        *qqlive*|*iqiyi*) lock_msg="视频看得够久了，明天再追吧。" ;;
+                        *) lock_msg="今日使用时长已超限，先休息一下吧。" ;;
                     esac
                     adb_sh am force-stop "$ca" 2>/dev/null
                     adb_sh input keyevent 3 2>/dev/null
@@ -171,14 +171,14 @@ main() {
                     limit_last_warn_ts=$ct
                     local warn_msg
                     case "$ca" in
-                        *aweme*) warn_msg="Screen time warning: ${remain} minutes remaining" ;;
-                        *xhs*) warn_msg="App time warning: ${remain} minutes remaining" ;;
-                        *bili*) warn_msg="App time warning: ${remain} minutes remaining" ;;
-                        *gif*) warn_msg="App time warning: ${remain} minutes remaining" ;;
+                        *aweme*) warn_msg="抖音已使用较长时间，还剩${remain}分钟" ;;
+                        *xhs*) warn_msg="小红书已使用较长时间，还剩${remain}分钟" ;;
+                        *bili*) warn_msg="B站已使用较长时间，还剩${remain}分钟" ;;
+                        *gif*) warn_msg="快手已使用较长时间，还剩${remain}分钟" ;;
                         *game*|*timi*|*sgame*|*pubg*|*genshin*|*honkai*|*starrail*|*wzry*)
-                            warn_msg="Gaming time warning: ${remain} minutes remaining" ;;
-                        *qqlive*|*iqiyi*) warn_msg="App time warning: ${remain} minutes remaining" ;;
-                        *) warn_msg="App time warning: ${remain} minutes remaining" ;;
+                            warn_msg="游戏已进行较长时间，还剩${remain}分钟" ;;
+                        *qqlive*|*iqiyi*) warn_msg="视频已观看较长时间，还剩${remain}分钟" ;;
+                        *) warn_msg="已使用较长时间，还剩${remain}分钟" ;;
                     esac
                     termux-toast -g middle "$warn_msg" 2>/dev/null
                     log "⚠️ 预警: $ca 还剩 ${remain} 分钟"
@@ -215,7 +215,7 @@ main() {
 
         log "事件: $event"
         send_nudge "$event" "$ca" "$cb" "$cs"
-        # music_moment → auto-play (closed loop, independent of AI)
+        # music_moment → 自动选歌播放（独立闭环，不等AI响应）
         [[ "$event" == "music_moment" ]] && bash ~/.cc-connect/scripts/music_moment.sh &
         [[ "$event" == "random_glance" ]] && last_glance_ts=$now
         [[ "$event" == "music_moment" ]] && last_music_ts=$now
