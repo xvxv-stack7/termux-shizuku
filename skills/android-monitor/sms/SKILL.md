@@ -1,90 +1,84 @@
 ---
 name: sms-monitor
-description: SMS inbox polling via ADB — read, filter, and forward incoming SMS content without Android permissions or APK installation
+description: SMS inbox polling via termux-sms-list (Termux:API) — read, filter, forward, and auto-reply to SMS content
 ---
 
 # SMS Monitor — Sub-skill of android-monitor
 
-Poll the Android SMS inbox from Termux shell without any app-level permissions. Uses `content query` on the system SMS content provider via ADB.
+Poll Android SMS inbox from Termux using `termux-sms-list` (Termux:API). Clean JSON output, no parsing fragility. Send replies via `termux-sms-send`.
 
-## Why This Works
+**Requires:** Termux:API app installed (F-Droid: `com.termux.api`).
 
-Android's SMS content provider (`content://sms/inbox`) is readable by the shell user (ADB). No root, no SMS permission, no APK needed. The only catch: the URI and column names vary slightly by Android version.
-
-## Quick Commands
+## Read Inbox
 
 ```bash
-# Latest 5 SMS messages
-adb shell content query --uri content://sms/inbox --projection address,body,date --sort "date DESC" | head -20
+# Returns JSON array of recent SMS messages
+termux-sms-list
 
-# Unread only (read=0)
-adb shell content query --uri content://sms/inbox --projection address,body,date --where "read=0"
-
-# From a specific sender
-adb shell content query --uri content://sms/inbox --projection address,body,date --where "address LIKE '%1069%'" --sort "date DESC"
-
-# Count unread
-adb shell content query --uri content://sms/inbox --projection _id --where "read=0" | grep "Row:" | wc -l
+# Sample output:
+# [{"number":"106900901234","body":"【银行】您尾号1234的账户收入500.00元","received":"2026-07-21 14:30:00","type":"inbox"}]
 ```
 
-## Polling Script (minimal)
+## Send SMS
 
 ```bash
-#!/data/data/com.termux/files/usr/bin/bash
-# sms_poll.sh — check inbox every N seconds, flag new messages
-LAST_ID_FILE="$HOME/.cc-connect/.sms_last_id"
-INTERVAL=60
-
-while true; do
-    LATEST=$(adb shell content query --uri content://sms/inbox --projection _id,address,body,date --sort "date DESC" 2>/dev/null | head -3)
-    ID=$(echo "$LATEST" | grep -oP 'Row: \d+ _id=\K\d+' | head -1)
-    LAST=$(cat "$LAST_ID_FILE" 2>/dev/null || echo 0)
-
-    if [ "$ID" -gt "$LAST" ]; then
-        ADDR=$(echo "$LATEST" | grep -oP 'address=\K[^,]+' | head -1)
-        BODY=$(echo "$LATEST" | grep -oP 'body=\K[^,]+' | head -1)
-        echo "NEW_SMS|from=$ADDR|body=$BODY|id=$ID"
-        echo "$ID" > "$LAST_ID_FILE"
-    fi
-
-    sleep "$INTERVAL"
-done
+termux-sms-send -n <number> "<message>"
 ```
 
-Integration with android-monitor: add this loop to gaze.sh or run as a separate nohup process. Events can feed into the same `gaze_trigger.json` pipeline.
+## Polling Script (Python)
 
-## Content Provider Reference
+```python
+#!/data/data/com.termux/files/usr/bin/python3
+"""Check SMS inbox for new messages. Write trigger file when found."""
+import subprocess, json, os
 
-| Android Version | URI | Notes |
-|---|---|---|
-| 4.4–7.x (API 19–25) | `content://sms/inbox` | Standard. `address`, `body`, `date`, `read`, `_id` columns. |
-| 8.0+ (API 26+) | `content://sms/inbox` | Same URI. Some OEMs add `seen` column. Samsung adds `sim_id`. |
-| 10+ (API 29+) | `content://sms/inbox` | Still works via ADB. App-level access restricted by `READ_SMS` permission, but shell is exempt. |
+TS_FILE = os.path.expanduser("~/.cache/sms_last_ts")
+TRIGGER = os.path.expanduser("~/.cache/sms_trigger.txt")
 
-**Caveat**: On some Android 11+ devices, `content query` may return empty if the default SMS app is not set. Set a default SMS app in Settings first.
+# Track last seen timestamp
+last_ts = "2000-01-01 00:00"
+if os.path.exists(TS_FILE):
+    with open(TS_FILE) as f:
+        last_ts = f.read().strip()
 
-## Sending SMS
+# Fetch messages
+r = subprocess.run(["termux-sms-list"], capture_output=True, text=True, timeout=8)
+if r.returncode != 0:
+    exit()
+msgs = json.loads(r.stdout)
 
-```bash
-# Via am start (opens compose UI — user must manually tap send)
-adb shell am start -a android.intent.action.SENDTO -d sms:<number> --es sms_body "<message>"
+# Find new ones
+new_msgs = [m for m in msgs if m.get("received", "") > last_ts]
+for m in new_msgs:
+    # Write trigger for Claude Code to process
+    with open(TRIGGER, "w") as f:
+        f.write(f"NEW_SMS|from={m['number']}|body={m['body']}|time={m['received']}")
 
-# Via service call (background send, requires root or Shizuku on some devices)
-adb shell service call isms 7 i32 0 s16 "com.android.mms" s16 "<number>" s16 "null" s16 "<message>" s16 "null" s16 "null"
+# Update tracker
+if msgs:
+    with open(TS_FILE, "w") as f:
+        f.write(msgs[-1].get("received", last_ts))
 ```
 
-The `service call` method is fragile — the service number (`7`) and parameter order change between Android versions and OEMs. Always test on the target device.
+## Cron Integration
 
-## Use Cases
+```
+# Check every minute for new SMS
+* * * * * python3 ~/bin/sms-check-cron
 
-- **OTP/verification code forwarding**: Poll for SMS from short numbers, extract code via regex, forward to another channel
-- **Bank/payment alerts**: Monitor transaction notifications, flag unusual amounts
-- **Delivery tracking**: Extract tracking numbers from courier SMS
-- **Inbox health**: Detect spam accumulation or unread backlog
+# Occasional proactive SMS (limited to 2/day, 06:00-00:00 only)
+13,43 * * * * python3 ~/bin/sms-nudge-cron
+```
+
+## Decision Log
+
+- **Why termux-sms-list instead of adb content query?** `termux-sms-list` returns clean JSON. The ADB approach (`content query --uri content://sms/inbox`) parses raw Row output and has undocumented column variations across OEMs. Not reliable enough.
+- **Why cron polling instead of event-driven?** Android does not emit shell-visible events on incoming SMS. Must poll.
+- **Why not a Python daemon?** Tried `smsd.py` — it missed messages. Cron is simple and reliable: no state to lose, no daemon to supervise.
 
 ## Limitations
 
-- **No push**: Must poll. SMS content provider does not emit shell-visible events on new messages.
-- **Deletion risk**: Some OEMs auto-delete OTP messages after 24h. Content provider won't find them.
-- **MMS**: Not accessible via `content://sms/`. Requires `content://mms/` which has different column schema.
-- **RCS/Chat messages**: Not in SMS inbox. These go through Google Messages' proprietary database.
+- Requires Termux:API app (separate install from main Termux)
+- No push — polling only. 60s cron is the floor.
+- MMS not accessible via `termux-sms-list`
+- RCS/Chat messages go through proprietary Google Messages database, not SMS inbox
