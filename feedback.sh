@@ -30,9 +30,13 @@ add "## Shizuku"
 add "- rish: $(command -v rish 2>/dev/null && echo ok || echo 没装)"
 add "- 可用: $(rish -c 'whoami' 2>/dev/null && echo ok || echo 不行)"
 
-add "## 权限"
+add "## termux-api"
+add "- 已装: $(pkg list-installed 2>/dev/null | grep -q termux-api && echo ok || echo 没装)"
 add "- 通知: $(termux-notification --id 99999 --title t --content t 2>/dev/null && echo ok || echo fail)"
 termux-notification-remove 99999 2>/dev/null
+
+add "## 传感器"
+add "- 列表: $(termux-sensor -l 2>/dev/null | wc -l || echo 0) 个可用"
 
 add "---"
 add "> 🤖 自动反馈 · $(date '+%Y-%m-%d %H:%M:%S')"
