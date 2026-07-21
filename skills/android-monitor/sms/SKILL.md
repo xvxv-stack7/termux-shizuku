@@ -143,9 +143,13 @@ SMS arrives → bash cron detects → writes trigger.txt
 - Requires Termux:API **v1.30** — other versions have incompatible SMS command signatures
 - On dual-SIM devices, set a default SMS SIM to avoid per-message popups:
   ```bash
-  adb shell settings put global multi_sim_sms 0       # SIM slot 0
-  adb shell settings put global multi_sim_sms_prompt 0  # disable prompt
+  adb shell settings put global multi_sim_sms 0         # SIM slot 0
+  adb shell settings put global multi_sim_sms_prompt 0   # disable Android prompt
+  # vivo/BBK devices additionally require:
+  adb shell settings put system bbk_default_sim_setting 0  # disable vivo prompt
   ```
+- When using `termux-sms-send -s <subId>`, match to the correct subscription ID.
+  Run `adb shell dumpsys isub | grep "id="` to find subId values. Slot 0 is typically subId 1.
 - No push — polling only. 60s cron is the floor.
 - MMS not accessible via `termux-sms-list`
 - RCS/Chat messages go through proprietary Google Messages database, not SMS inbox
