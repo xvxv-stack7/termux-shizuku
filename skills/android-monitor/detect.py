@@ -14,7 +14,8 @@ def main():
     curr = json.loads(sys.argv[2])
     app_start_time = int(sys.argv[3]) if len(sys.argv) > 3 and sys.argv[3] else 0
     current_app = sys.argv[4] if len(sys.argv) > 4 else ""
-    has_a2dp = int(sys.argv[5]) if len(sys.argv) > 5 else 0
+    binge_fired = sys.argv[5] if len(sys.argv) > 5 else ""
+    has_a2dp = int(sys.argv[6]) if len(sys.argv) > 6 else 0
 
     # Extract all fields (previously 8 separate python3 -c calls in detect_event)
     ps = prev.get('screen', '')
@@ -52,8 +53,8 @@ def main():
         if any(kw in pa for kw in game_kw) and pa != ca and ca != "unknown":
             event = "gaming_end"
 
-    # 5. binge_app — same entertainment app > 30min
-    if not event and app_start_time > 0 and current_app:
+    # 5. binge_app — same entertainment app > 30min (once per app per day)
+    if not event and app_start_time > 0 and current_app and binge_fired != ca:
         binge_elapsed = ct - app_start_time
         if binge_elapsed > 1800:
             ent_kw = ['aweme', 'xhs', 'bili', 'kuaishou', 'qqlive', 'iqiyi',

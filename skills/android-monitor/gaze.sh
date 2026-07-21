@@ -57,8 +57,8 @@ print(ts)" 2>/dev/null || echo 0)
 # detect.py 替代了原来 85 行的 detect_event 函数
 # 原来每轮 12-15 次 python3 调用 → 现在 1 次，且事件逻辑集中维护
 detect_and_extract() {
-    local prev="$1" curr="$2" has_a2dp="${3:-0}"
-    python3 "$HOME_DIR/.cc-connect/scripts/detect.py" "$prev" "$curr" "$APP_START_TIME" "$CURRENT_APP" "$has_a2dp"
+    local prev="$1" curr="$2" binge_fired="${3:-}" has_a2dp="${4:-0}"
+    python3 "$HOME_DIR/.cc-connect/scripts/detect.py" "$prev" "$curr" "$APP_START_TIME" "$CURRENT_APP" "$binge_fired" "$has_a2dp"
 }
 
 send_nudge() {
@@ -127,7 +127,7 @@ main() {
         [[ $hour_now -ge 8 && $hour_now -lt 23 ]] && has_a2dp=$(adb_sh dumpsys audio 2>/dev/null | grep -c "Devices:.*bt_a2dp")
 
         # Single Python call: field extraction + 11 event rules (replaces 12+ python3 -c calls)
-        eval "$(detect_and_extract "$prev" "$curr" "$has_a2dp")"
+        eval "$(detect_and_extract "$prev" "$curr" "$BINGE_FIRED" "$has_a2dp")"
         # detect.py outputs shell variables: event ca ct cs cb
 
         # Reset binge dedup on date change
