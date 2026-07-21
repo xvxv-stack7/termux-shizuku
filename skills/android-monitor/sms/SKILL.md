@@ -96,6 +96,39 @@ if msgs:
 - **Why cron polling instead of event-driven?** Android does not emit shell-visible events on incoming SMS. Must poll.
 - **Why not a Python daemon?** Tried `smsd.py` — it missed messages. Cron is simple and reliable: no state to lose, no daemon to supervise.
 
+## Auto-Reply Architecture
+
+The polling script alone only detects new SMS. To close the loop — detect → generate reply → send — combine three pieces:
+
+### 1. Bash cron (poll and write trigger)
+
+```
+* * * * * python3 ~/bin/sms-check-cron
+```
+
+The script polls `termux-sms-list`, filters for a specific sender, and writes new message bodies to `~/.cache/sms_trigger.txt`.
+
+### 2. Claude Code CronCreate (read trigger, generate reply)
+
+```
+CronCreate cron: "* * * * *" recurring: true durable: true
+prompt: "查短信：读 ~/.cache/sms_trigger.txt。如果有新内容，用自然语气生成回复，简洁1-2句话。Bash执行: MSG=\"回复\" && termux-sms-send -n <号码> \"$MSG\"。回完清空trigger。无新内容输出NO_REPLY。"
+```
+
+This pushes a prompt to Claude Code every minute. When `sms_trigger.txt` has content, the AI generates a natural-language reply and sends it. When empty, it outputs `NO_REPLY` and costs minimal tokens.
+
+### 3. Dedup tracking
+
+The polling script tracks replied message timestamps in `~/.cache/sms_replied.txt` to avoid replying to the same message twice.
+
+### Full chain
+
+```
+SMS arrives → bash cron detects → writes trigger.txt
+→ Claude Code CronCreate fires → reads trigger → generates reply → termux-sms-send
+→ clears trigger → tracks as replied
+```
+
 ## Limitations
 
 - Requires Termux:API app (separate install from main Termux)
