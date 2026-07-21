@@ -5,10 +5,17 @@
 
 如果你在用 Claude Code，别从零开始写命令——直接加载 `skills/` 下的现成技能：
 
-- **`/android-monitor`** — 后台监控 + 防沉迷 + 事件推送（包含 sensors 和 sms 子技能）
-- **`/phone-control`** — 锁屏/杀应用/切歌/截图
-- **`/phone-notify`** — 通知栏 + 日历
+- **`/android-monitor`** — 后台监控 + 防沉迷 + 事件推送
+  - `/android-sensors` — 26+ 传感器速查手册（vivo S19 检测到 43 个）
+  - `/sms-monitor` — 短信轮询 + 自动回复（实验性）
+  - `/calendar-alarm` — 日历事件 + 闹钟提醒
+  - `/proactive-checkin` — AI 主动唤醒 + 状态感知
+- **`/phone-control`** — 锁屏/杀应用/切歌/截图/剪贴板/打开URL
+- **`/phone-elements`** — UI 元素树解析，1 秒找按钮坐标并点击（比截图识图快 8 倍）
+- **`/phone-open`** — 打开网页/本地文件/应用商店/深度链接
+- **`/phone-notify`** — 通知栏 + 系统通知操作
 - **`/phone-sensors`** — 屏幕/前台App/电量/步数/光线
+- **`/smart-dispatch`** — 🔑 智能调度层：接到自然语言指令后，自动拆解步骤，从以上技能中选最快工具组合执行
 
 详见仓库 `skills/` 目录各 SKILL.md 的配置说明。
 
