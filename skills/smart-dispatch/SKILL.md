@@ -15,13 +15,24 @@ Every user command is decomposed into **tool-independent steps**. For each step,
 |----------|--------|-------|----------|
 | 1 | `content query/insert` | 0.5s | DB access (contacts, SMS, calendar) |
 | 2 | `am start` / `am force-stop` | 1-2s | Open app, kill app, open URL |
-| 3 | `uiautomator dump` (`elements.py`) | 1s | Find UI element coordinates |
-| 4 | `input tap/keyevent/text` | 0.3s | Execute click/type after coordinates found |
-| 5 | `cmd clipboard` + paste | 0.5s | Long Chinese text input |
-| 6 | `dumpsys` (battery/power/wifi) | 0.5s | Read system state |
-| 7 | `screencap` + vision AI | 7-8s | Last resort: unknown layout, scene understanding |
+| 3 | `mimic dump --filter interactive` | 0.5s | UI element tree on **all apps with accessibility data** |
+| 4 | `uiautomator dump` (`elements.py`) | 1s | Standard Android apps (native Views only) |
+| 5 | `input tap/keyevent/text` | 0.3s | Execute click/type after coordinates found |
+| 6 | `cmd clipboard` + paste | 0.5s | Long Chinese text input |
+| 7 | `dumpsys` (battery/power/wifi) | 0.5s | Read system state |
+| 8 | `screencap` + vision AI | 8s | 🚨 Last resort only |
 
-**Golden rule**: never use vision AI when uiautomator can find the element. 1s vs 8s.
+**Golden rule**: mimic first (0.5s, all compliant apps), uiautomator second (1s, AOSP apps), vision last (8s). Never jump to vision without trying the first two.
+
+## App Compatibility Matrix (vivo S19 verified, 2026-07-22)
+
+| App | mimic | uiautomator | Notes |
+|-----|:---:|:---:|-------|
+| 系统设置 | ✅ 0.5s | ✅ 1s | 完美 |
+| Termux | ✅ 0.5s | ✅ 1s | 完美 |
+| 微信 | ❌ | ❌ | 腾讯不填无障碍数据，自研渲染引擎 |
+| 抖音 | ⚠️ 未实测 | ⚠️ 未实测 | monkey/am start 被 vivo 双开拦截，待测 |
+| 大部分原生 App | ✅ | ✅ | 标准 Android View 的都能读 |
 
 ## Available Tool Catalog
 
@@ -116,9 +127,10 @@ Total: ~2s
 When the user says "do X", follow this decision tree:
 
 1. **Is X a single system command?** → Run it directly (battery check, WiFi toggle, etc.)
-2. **Does X involve finding a UI element?** → Use `elements.py`, not vision
-3. **Does X involve typing Chinese?** → Use clipboard paste, not `input text`
-4. **Does X span multiple apps?** → Chain the fastest method for each step
-5. **Is the screen layout unknown/novel?** → Fall back to screenshot + vision
+2. **Is the target app WeChat?** → Skip uiautomator/mimic, go straight to vision fallback (Tencent blocks accessibility data)
+3. **Does X involve finding a UI element?** → Try mimic first (0.5s), then `elements.py` (1s). Never use vision when either works.
+4. **Does X involve typing Chinese?** → Use clipboard paste, not `input text`
+5. **Does X span multiple apps?** → Chain the fastest method for each step
+6. **Is the screen layout unknown/novel?** → Fall back to screenshot + vision (8s last resort)
 
-Always report: what you did, which tools you used, and how long it took. The user should see the speed difference between uiautomator (1s) and vision (8s).
+Always report: what you did, which tools you used, and how long it took.
