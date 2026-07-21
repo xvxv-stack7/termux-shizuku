@@ -78,7 +78,9 @@ adb -s 127.0.0.1:5555 shell input tap <x> <y>
 
 ## OEM Notes
 
+- ✅ **vivo S19 (OriginOS 5 / API 35)** — fully tested 2026-07-21. Dump to file works, `/dev/tty` mode not supported.
 - Works on all Android 5.0+ devices — `uiautomator` is AOSP
 - Some OEMs may take 1-2s longer on first dump after reboot (cold start)
 - Huawei EMUI 12+: works (different subsystem than `dumpsys activity`)
 - If `uiautomator` not found, check that the device isn't in headless/kiosk mode
+- `/dev/tty` mode varies by OEM. File dump to `/sdcard/ui_dump.xml` is the universal fallback.
