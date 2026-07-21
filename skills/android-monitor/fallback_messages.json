@@ -44,5 +44,11 @@
     "No activity for some time. Device may be idle.",
     "Long silence detected.",
     "Nothing happening for a while."
+  ],
+  "left_chat": [
+    "Left chat — now browsing other apps.",
+    "Switched away from messaging to browse.",
+    "Chat window closed, moved to another app.",
+    "Left the conversation. Will be waiting."
   ]
 }
