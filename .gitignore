@@ -6,6 +6,16 @@
 *.swp
 *~
 
+# 私人脚本（勿提交）
+game-raid.sh
+nudge.sh
+speak-bg.sh
+speak-daemon.sh
+stalker.sh
+ultimate.sh
+skills.sh
+docs/
+
 # 系统文件
 .DS_Store
 Thumbs.db
