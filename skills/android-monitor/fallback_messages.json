@@ -1,0 +1,48 @@
+{
+  "_comment": "Fallback messages for each event type. gaze.sh randomly picks one when no Claude Code session consumes the trigger within 120s. Customize these to your voice.",
+  "woke_up": [
+    "Device woke up — screen is on.",
+    "Screen turned on. Someone's awake.",
+    "Screen lit up again."
+  ],
+  "started_walking": [
+    "Movement detected — step count increasing.",
+    "Walking detected.",
+    "On the move."
+  ],
+  "binge_app": [
+    "Screen time alert — extended usage detected.",
+    "You've been on this app for a while. Take a break.",
+    "Long session detected. Rest your eyes."
+  ],
+  "app_switch": [
+    "App switched.",
+    "Moved to a different app.",
+    "App change detected."
+  ],
+  "gaming_end": [
+    "Gaming session ended.",
+    "Game closed. Back to reality.",
+    "Finished gaming."
+  ],
+  "low_battery": [
+    "Battery low — please charge soon.",
+    "Battery running low. Find a charger.",
+    "Low battery alert."
+  ],
+  "midnight_phone": [
+    "Late night screen time detected.",
+    "It's late — consider putting the phone down.",
+    "Screen on during night hours."
+  ],
+  "stopped": [
+    "No movement detected for a while. Everything OK?",
+    "Been stationary for some time.",
+    "No steps for a while."
+  ],
+  "long_silence": [
+    "No activity for some time. Device may be idle.",
+    "Long silence detected.",
+    "Nothing happening for a while."
+  ]
+}

@@ -120,6 +120,34 @@ Tracks **cumulative daily usage** per app (not just continuous session). Logic:
 
 Called automatically by gaze.sh every loop — no separate process needed.
 
+## Custom Fallback Messages
+
+gaze.sh supports custom fallback messages via `~/.cc-connect/fallback_messages.json`. If this file exists, `check_fallback()` randomly picks a message from it instead of using the built-in defaults.
+
+Format:
+```json
+{
+  "woke_up": ["msg1", "msg2", "msg3"],
+  "binge_app": ["...", "..."],
+  ...
+}
+```
+
+A template file is provided in this skill directory — copy it to `~/.cc-connect/` and customize. Claude Code can update this file at runtime to inject fresh, contextual fallback messages, keeping the offline voice aligned with the online voice.
+
+## Proactive Notification Pattern
+
+gaze.sh detects events independently. Claude Code can layer a proactive check-in on top:
+
+- Every 30 minutes of silence → check gaze_state.json
+- If the user is on an entertainment app, low battery, late-night screen, or has been stationary → generate a custom notification regardless of whether a trigger fired
+- Not a cron job — state-driven, not time-driven
+
+Track last contact time in a simple JSON file to avoid spamming:
+```json
+{"last_notification": <timestamp>, "last_wechat": <timestamp>}
+```
+
 ## Files
 
 | Path | Purpose |
@@ -127,6 +155,7 @@ Called automatically by gaze.sh every loop — no separate process needed.
 | `gaze.sh` | Main daemon |
 | `app_limit.sh` | Usage tracker + limiter |
 | `app_limit_config.json` | Per-app daily minute limits |
+| `fallback_messages.json` | Custom fallback messages (template) |
 | `sensors/SKILL.md` | 43-sensor reference catalog |
 | `sms/SKILL.md` | SMS inbox polling via ADB content provider |
 | `calendar-alarm/SKILL.md` | Calendar events with alarm reminders |

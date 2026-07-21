@@ -137,19 +137,30 @@ check_fallback() {
     [[ $(( now - ts )) -lt 120 ]] && return
 
     local event=$(python3 -c "import json; print(json.load(open('$trigger_file')).get('event',''))" 2>/dev/null)
-    local fb_msg=""
-    case "$event" in
-        woke_up)         fb_msg="Device woke up." ;;
-        started_walking) fb_msg="Movement detected." ;;
-        binge_app)       fb_msg="Screen time alert: extended usage detected." ;;
-        app_switch)      fb_msg="App switched." ;;
-        gaming_end)      fb_msg="Gaming session ended." ;;
-        low_battery)     fb_msg="Battery low — please charge." ;;
-        midnight_phone)  fb_msg="Late night screen time detected." ;;
-        stopped)         fb_msg="No movement for a while." ;;
-        long_silence)    fb_msg="No activity detected for some time." ;;
-        *)               fb_msg="" ;;
-    esac
+    # Try custom fallback messages first, fall back to hardcoded defaults
+    local fb_msg=$(python3 -c "
+import json, random, os
+msg_file = '$HOME_DIR/.cc-connect/fallback_messages.json'
+if os.path.exists(msg_file):
+    msgs = json.load(open(msg_file))
+    pool = msgs.get('$event', [])
+    if pool:
+        print(random.choice(pool))
+        exit()
+# Built-in defaults
+defaults = {
+    'woke_up': 'Device woke up.',
+    'started_walking': 'Movement detected.',
+    'binge_app': 'Screen time alert: extended usage detected.',
+    'app_switch': 'App switched.',
+    'gaming_end': 'Gaming session ended.',
+    'low_battery': 'Battery low — please charge.',
+    'midnight_phone': 'Late night screen time detected.',
+    'stopped': 'No movement for a while.',
+    'long_silence': 'No activity detected for some time.'
+}
+print(defaults.get('$event', ''))
+" 2>/dev/null)
 
     if [[ -n "$fb_msg" ]]; then
         termux-notification --id "gaze_$(date +%s)" --title "Monitor" --content "$fb_msg" --priority max 2>/dev/null
