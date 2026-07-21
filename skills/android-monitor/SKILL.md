@@ -21,7 +21,6 @@ gaze.sh (system daemon, 60s loop)
   ├─ detect_event()      → screen wake, walking, binge, low battery, midnight
   ├─ app_limit.sh        → cumulative time tracking + force-stop at threshold
   ├─ send_nudge()        → writes lightweight trigger for Claude Code Monitor
-  └─ check_fallback()    → termux-notification if trigger unread for 60s
 
 Claude Code session
   └─ Monitor (persistent) → watches trigger file → AI generates notification message
@@ -31,14 +30,12 @@ Claude Code session
 - **Dual-channel shell**: `sh_cmd()` tries **Shizuku rish** first (binder IPC, no WiFi needed), falls back to **ADB over TCP** (127.0.0.1:5555). All shell commands automatically use this channel — no separate config required.
 - Events go through **Monitor** (event-driven, not cron-polled) to Claude Code
 - **The AI generates every message live** — no templates, no canned responses. Each trigger is a moment: the AI reads the event, looks at the user's current state (what app, what time, how many steps), and writes a unique message in its own voice.
-- Offline **fallback**: if no Claude Code session consumes the trigger within 60s, gaze.sh fires from `fallback_messages.json`. This is the **last resort** — treat it as a backup, not the primary channel. Customize the template file to match your AI's personality, but never rely on it when the AI is online.
 - **app_limit.sh** tracks cumulative daily usage per app and force-stops on limit
 
 ## Requirements
 
 - Android device with Termux
 - **Shizuku** (recommended) — binder IPC, no WiFi dependency, survives reboot
-- **ADB over TCP** (fallback) — 127.0.0.1:5555, works without Shizuku
 - At least one of the above must be active. `sh_cmd()` in gaze.sh auto-detects and picks the available channel.
 - `termux-notification` (termux-api package)
 - `python3` in Termux
@@ -82,11 +79,8 @@ cp app_limit.sh ~/.cc-connect/scripts/
 chmod +x ~/.cc-connect/scripts/*.sh
 ```
 
-### Step 6: Customize fallback messages (optional)
 
-Ask the user: "When I'm offline and can't generate messages, should I use generic notifications or do you want to write your own fallback messages?"
 
-If they want custom messages, let them edit `~/.cc-connect/fallback_messages.json`. Otherwise the built-in defaults are fine.
 
 ### Step 7: Verify ADB and start daemon
 
@@ -157,7 +151,6 @@ fi
 
 ## Event Types
 
-| Event | Trigger | Fallback notification |
 |---|---|---|
 | `woke_up` | Screen off → on (gap > 5 min) | "Screen woke up." |
 | `started_walking` | Steps +200 | "Started moving." |
@@ -183,9 +176,7 @@ Tracks **cumulative daily usage** per app (not just continuous session). Logic:
 
 Called automatically by gaze.sh every loop — no separate process needed.
 
-## Custom Fallback Messages
 
-gaze.sh supports custom fallback messages via `~/.cc-connect/fallback_messages.json`. If this file exists, `check_fallback()` randomly picks a message from it instead of using the built-in defaults.
 
 Format:
 ```json
@@ -196,7 +187,6 @@ Format:
 }
 ```
 
-A template file is provided in this skill directory — copy it to `~/.cc-connect/` and customize. Claude Code can update this file at runtime to inject fresh, contextual fallback messages, keeping the offline voice aligned with the online voice.
 
 ## Files
 
@@ -205,7 +195,6 @@ A template file is provided in this skill directory — copy it to `~/.cc-connec
 | `gaze.sh` | Main daemon |
 | `app_limit.sh` | Usage tracker + limiter |
 | `app_limit_config.json` | Per-app daily minute limits |
-| `fallback_messages.json` | Custom fallback messages (template) |
 | `sensors/SKILL.md` | 43-sensor reference catalog |
 | `sms/SKILL.md` | SMS inbox polling via ADB content provider |
 | `calendar-alarm/SKILL.md` | Calendar events with alarm reminders |
@@ -227,7 +216,6 @@ A template file is provided in this skill directory — copy it to `~/.cc-connec
 - gaze.sh uses 60s polling (lightweight bash, no LLM involved)
 - Trigger file contains only 5 fields: `event`, `fg_app`, `battery`, `screen`, `ts`
 - Monitor pushes only when trigger updates (~3–6 events/hour after dedup)
-- Anti-addiction enforcement and fallback notifications run entirely in bash
 - No CronCreate — Monitor is event-driven, not time-polled
 
 ## Design: Why Bash Polling?
@@ -291,7 +279,6 @@ Each OEM customizes Android differently. Below are verified compatibility notes 
 | Command | Pixel/AOSP | Xiaomi MIUI/HyperOS | Huawei EMUI/HarmonyOS | vivo OriginOS | Oppo ColorOS | Samsung One UI |
 |---|---|---|---|---|---|---|
 | `dumpsys activity activities` | ✅ | ⚠️ field rename | ❌ blocked EMUI 12+ | ✅ | ✅ | ✅ |
-| `dumpsys activity top` | ✅ | ✅ fallback | ❌ blocked EMUI 12+ | ✅ | ✅ | ✅ |
 | `dumpsys power` (read) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `dumpsys battery` (read) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `dumpsys battery set` (write) | ✅ | ⚠️ needs MIUI Opt off | ❌ often root-only | ❌ restricted | ❌ restricted | ⚠️ strict policies |
@@ -308,13 +295,11 @@ Each OEM customizes Android differently. Below are verified compatibility notes 
 ### Detailed OEM Notes
 
 #### Xiaomi (MIUI / HyperOS)
-- **dumpsys activity**: `mResumedActivity` may be renamed to `mFocusedActivity`. Use fallback regex `grep -E "(mResumedActivity|mFocusedActivity|top-activity)"` or `dumpsys activity top`.
 - **dumpsys battery set**: requires disabling "MIUI Optimization" in Developer options → reboot.
 - **Background survival**: aggression rating 5/5. Must: disable battery optimization for Termux, enable Autostart, lock Termux in Recents (drag card down until padlock appears). Recommend running `fix-termux-limits` script.
 - **Wireless debugging**: supported. Standard `adb tcpip 5555` flow works.
 
 #### Huawei (EMUI / HarmonyOS)
-- **dumpsys activity**: **blocked** starting EMUI 12 / HarmonyOS 3.0+. Output is empty or compressed. Use `hdc shell hidumper -a` or `hdc shell dumpsys ability` as fallback on HarmonyOS.
 - **HarmonyOS NEXT (5.0+)**: **ADB not available**. Uses `hdc` (HarmonyOS Device Connector) exclusively. This skill's ADB-based commands will not work. Requires hdc-based rewrite.
 - **Wireless debugging**: supported on HarmonyOS 3.x/4.x with extra step — must enable "仅充电模式下允许ADB调试" toggle. First-time setup: USB connect → `adb tcpip 5555` → `adb connect IP:5555` → unplug USB.
 - **dumpsys battery set**: often requires root.
@@ -359,4 +344,3 @@ Each OEM customizes Android differently. Below are verified compatibility notes 
 - Adjust `LOOP_SLEEP` in gaze.sh (default 60s)
 - Modify `app_limit_config.json` for different apps/limits
 - Extend `detect_event()` for custom triggers
-- Edit fallback messages in `check_fallback()` for custom wording

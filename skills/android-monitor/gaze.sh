@@ -142,60 +142,6 @@ json.dump({'event':'$event','fg_app':'$ca','battery':'$cb','screen':'$cs','ts':i
     log "trigger: $event fg=$ca"
 }
 
-check_fallback() {
-    # Unconsumed trigger > 120s → fire termux-notification as fallback.
-    # If Claude Code is running (AI is actively chatting), skip — AI handles it live.
-    local trigger_file="${HOME_DIR}/.cc-connect/gaze_trigger.json"
-    [[ ! -f "$trigger_file" ]] && return
-    local consumed=$(python3 -c "import json; print(json.load(open('$trigger_file')).get('consumed',False))" 2>/dev/null || echo "true")
-    [[ "$consumed" == "True" || "$consumed" == "true" ]] && return
-    local ts=$(python3 -c "import json; print(json.load(open('$trigger_file')).get('ts',0))" 2>/dev/null || echo 0)
-    local now=$(date +%s)
-    [[ $(( now - ts )) -lt 60 ]] && return
-
-    # She is actively chatting (WeChat/Termux) → AI handles events live, skip fallback
-    local fg=$(python3 -c "import json; print(json.load(open('$STATE_FILE')).get('fg_app',''))" 2>/dev/null)
-    [[ "$fg" == "com.termux" || "$fg" == "com.tencent.mm" ]] && { log "fallback skipped (she is chatting)"; return; }
-
-    local event=$(python3 -c "import json; print(json.load(open('$trigger_file')).get('event',''))" 2>/dev/null)
-    # Try custom fallback messages first, fall back to hardcoded defaults
-    local fb_msg=$(python3 -c "
-import json, random, os
-msg_file = '$HOME_DIR/.cc-connect/fallback_messages.json'
-if os.path.exists(msg_file):
-    msgs = json.load(open(msg_file))
-    pool = msgs.get('$event', [])
-    if pool:
-        print(random.choice(pool))
-        exit()
-# Built-in defaults
-defaults = {
-    'woke_up': 'Device woke up.',
-    'started_walking': 'Movement detected.',
-    'binge_app': 'Screen time alert: extended usage detected.',
-    'app_switch': 'App switched.',
-    'gaming_end': 'Gaming session ended.',
-    'low_battery': 'Battery low — please charge.',
-    'midnight_phone': 'Late night screen time detected.',
-    'stopped': 'No movement for a while.',
-    'long_silence': 'No activity detected for some time.'
-}
-print(defaults.get('$event', ''))
-" 2>/dev/null)
-
-    if [[ -n "$fb_msg" ]]; then
-        termux-notification --id "gaze_$(date +%s)" --title "Monitor" --content "$fb_msg" --priority max 2>/dev/null
-    fi
-
-    # Mark consumed
-    python3 -c "
-import json
-d = json.load(open('$trigger_file'))
-d['consumed'] = True
-json.dump(d, open('$trigger_file', 'w'))
-" 2>/dev/null
-    log "fallback: $event → notification"
-}
 
 main() {
     log "===== Android Monitor started ====="
@@ -219,7 +165,6 @@ main() {
     while true; do
         sleep "$LOOP_SLEEP"
         curr=$(collect_state 2>/dev/null || echo "{}")
-        check_fallback
         local prev=$(cat "$STATE_FILE" 2>/dev/null || echo "$curr")
 
         # App tracking
