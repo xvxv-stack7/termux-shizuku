@@ -17,7 +17,7 @@ _detect_platform() {
     local owner token api_base issues_url
     if echo "$remote" | grep -q "gitee"; then
         owner="xvxv663"
-        token="b3b19f8fa54fbfb9f7279de1057b184e"  # 公用 issues-only token
+        token="${AUTO_FB_GITEE_TOKEN:-未设置}"
         issues_url="https://gitee.com/api/v5/repos/${owner}/issues?repo=${AUTO_FB_REPO_NAME}"
         web_url="https://gitee.com/${owner}/${AUTO_FB_REPO_NAME}/issues"
     elif echo "$remote" | grep -q "github"; then
