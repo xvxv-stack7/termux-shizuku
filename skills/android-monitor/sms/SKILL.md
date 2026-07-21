@@ -1,13 +1,15 @@
 ---
 name: sms-monitor
-description: 给AI一个手机号，让他能跟你短信交流——收到短信→AI读懂内容→生成回复→发回去。| Give the AI a phone number for SMS conversations: receive SMS → AI reads & understands → generates reply → sends back.
+description: [实验性] 给AI一个手机号，让他能跟你短信交流——收到短信→AI读懂内容→生成回复→发回去。部分环节待完善。| [Experimental] Give the AI a phone number for SMS conversations. Some components still under development.
 ---
 
 # SMS Monitor — Sub-skill of android-monitor
 
+> ⚠️ **状态：实验性，部分验证通过，整体链路待完善。** 基础能力（收发短信）已跑通，但自动回复闭环仍有几个待解决的问题。详见下方「已知待完善」段落。欢迎尝试并反馈。
+
 Give the AI a phone number. When someone texts it, the AI reads the message, understands it, writes a reply, and sends it back.
 
-**Prerequisite: two SIMs / two phone numbers.** The phone running Termux must have an active SIM card — that's the AI's number. The user texts that number from their own phone. This is not one phone messaging itself; it's a real SMS conversation between two different numbers.
+**Prerequisite: two SIMs / two phone numbers.** The phone running Termux must have an active SIM card — that's the AI's number. The user texts that number from their own phone.
 
 ## 🤖 AI Setup
 
@@ -153,3 +155,23 @@ SMS arrives → bash cron detects → writes trigger.txt
 - No push — polling only. 60s cron is the floor.
 - MMS not accessible via `termux-sms-list`
 - RCS/Chat messages go through proprietary Google Messages database, not SMS inbox
+
+## Known Issues & To Be Resolved
+
+This skill has been partially verified on vivo S19 (OriginOS/Android 16) with dual SIM (China Mobile + China Telecom). The following have been tested and the following remain open:
+
+### ✅ Verified Working
+- `termux-sms-list` — reading SMS inbox, JSON output stable
+- `termux-sms-send` — sending SMS (requires correct subscription ID and SIM prompt suppression)
+- 3-second polling daemon — detects new messages within 3s of arrival
+- Trigger file mechanism — daemon writes trigger, Monitor pushes to Claude Code
+
+### ❌ Still To Be Resolved
+- **Dual-SIM popup**: on vivo/BBK devices, `termux-sms-send` may trigger a SIM selection dialog even after setting `multi_sim_sms`, `multi_sim_sms_prompt`, and `bbk_default_sim_setting`. Root cause not fully isolated.
+- **Incoming number mismatch**: on some carrier setups, incoming SMS may arrive from a different number than the one the user sent from (e.g., user sends from 197xxx, arrives as 180xxx or through a forwarding number). The daemon must be configured to match all possible aliases.
+- **Timestamp granularity**: `termux-sms-list` provides minute-level timestamps only. Multiple messages arriving in the same minute can cause detection gaps.
+- **cc-connect dependency**: the WeChat push channel requires cc-connect with an active session. When the bridge is down, the Monitor-based fallback must be working.
+- **Auto-reply loop safety**: no rate limiting or flood prevention on the auto-reply chain. A conversation loop could exhaust daily SMS quotas.
+
+### Next Steps
+Contributions welcome on any of the above. The core polling and detection logic is stable; the remaining issues are in device-specific configuration and edge-case handling.
