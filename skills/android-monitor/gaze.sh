@@ -109,12 +109,8 @@ detect_event() {
     # Switched from WeChat/Termux to another app (excludes switching between chat apps)
     [[ "$pa" == "com.termux" || "$pa" == "com.tencent.mm" ]] && [[ "$ca" != "com.termux" && "$ca" != "com.tencent.mm" ]] && { echo "left_chat"; return; }
 
-    # Switched from entertainment to non-chat app
-    case "$pa" in *aweme*|*xhs*|*bili*|*kuaishou*|*qqlive*|*iqiyi*|*timi*|*game*|*genshin*|*honkai*|*starrail*|*wzry*|*pubg*)
-        if [[ "$ca" != "$pa" && "$ca" != "com.tencent.mm" && "$ca" != "com.termux" && "$ca" != "unknown" ]]; then
-            echo "app_switch"; return
-        fi
-    esac
+    # app_switch disabled (2026-07-22): left_chat covers "left chat for entertainment",
+    # binge_app covers "same entertainment >30min". app_switch was too noisy on normal switching.
 
     # Battery < 15%
     [[ $pb -gt 15 && $cb -le 15 && $cb -gt 0 ]] && { echo "low_battery"; return; }
