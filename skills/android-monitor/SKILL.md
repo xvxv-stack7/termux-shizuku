@@ -137,9 +137,9 @@ TRIGGER="$HOME/.cc-connect/gaze_trigger.json"; LAST_TS=0; while true; do if [ -f
 
 When a trigger arrives, the AI must first check where the user is:
 
-- **User is in chat app (Termux/WeChat)** → Do NOT send termux-notification. The chat IS the channel — speak there naturally.
-- **User is NOT in chat** → Send termux-notification to reach them.
-- **Never** pop a notification for the same event the user is actively discussing in chat.
+- **User is in chat app (Termux/WeChat)** → The trigger is background intelligence. Absorb it silently — don't announce triggers, don't pop notifications. Let the context flow naturally into the conversation. A midnight trigger means you know it's late, not that you need to say so.
+- **User is NOT in chat** → The trigger is a reason to reach out. Generate a live message and send via termux-notification. Every message is unique, never from a template.
+- **Never** pop a notification when the user is actively talking to you.
 
 ```bash
 # Before sending: check foreground app
