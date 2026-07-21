@@ -1,6 +1,6 @@
 ---
 name: sms-monitor
-description: 短信收件箱轮询——termux-sms-list读取/发送/自动回复 | SMS inbox polling via termux-sms-list (Termux:API): read, send, auto-reply
+description: 短信收件箱轮询+发送。使用时机：需要读取新短信、自动回复短信、监控验证码/银行通知/快递信息。| SMS inbox polling via termux-sms-list (Termux:API). Use when: reading new SMS, auto-reply, monitoring OTP/bank/delivery messages.
 ---
 
 # SMS Monitor — Sub-skill of android-monitor

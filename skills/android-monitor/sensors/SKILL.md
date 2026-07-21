@@ -1,6 +1,6 @@
 ---
 name: android-sensors
-description: 43个安卓传感器速查手册——动作/姿态/环境/活动识别/事件检测 | Android sensor catalog: 43 sensors via ADB dumpsys with inference patterns
+description: 43个安卓传感器速查手册。使用时机：需要查传感器列表、理解传感器用途、组合传感器推断设备状态/用户活动/环境。| Android sensor reference catalog: 43 sensors with inference patterns. Use when: need sensor listing, understanding sensor use cases, combining sensors for device state inference.
 ---
 
 # Android Sensors — Claude Code Skill

@@ -1,6 +1,6 @@
 ---
 name: phone-sensors
-description: 安卓设备状态感知——前台App/屏幕/电量/步数/光线/WiFi/信号 | Read Android device state: foreground app, screen, battery, steps, light, WiFi, memory
+description: 安卓设备状态感知。使用时机：需要查前台应用/屏幕状态/电量/步数/环境光/WiFi/信号强度/内存。| Android device state queries. Use when: reading foreground app, screen state, battery, steps, ambient light, WiFi, signal, memory needed.
 ---
 
 # Phone Sensors & State

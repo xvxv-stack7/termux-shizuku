@@ -1,6 +1,6 @@
 ---
 name: phone-notify
-description: 系统通知+日历——发通知/读通知栏/日历增删改查 | Send notifications, read notification bar, manage calendar events
+description: 系统通知+日历管理。使用时机：需要发系统通知、读取通知栏内容、查看/添加/删除日历事件。| System notifications and calendar. Use when: send notifications, read notification bar, manage calendar events needed.
 ---
 
 # Phone Notify & Calendar

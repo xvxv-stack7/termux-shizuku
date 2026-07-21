@@ -1,6 +1,6 @@
 ---
 name: phone-control
-description: 安卓设备控制——锁屏/杀应用/媒体键/截图/唤醒 | Control Android device: lock screen, force-stop apps, media keys, screenshot, wake
+description: 安卓设备控制。使用时机：需要锁屏/唤醒/强杀应用/切歌/调音量/截图/打开相机。| Android device control. Use when: lock screen, wake, force-stop apps, media keys, volume, screenshot, camera needed.
 ---
 
 # Phone Control

@@ -1,6 +1,6 @@
 ---
 name: android-monitor
-description: 安卓后台监控+防沉迷——gaze.sh守护进程+应用时长限制+事件推送 | Android background monitoring with anti-addiction: gaze.sh daemon + app usage limits + event-driven alerts
+description: 安卓后台监控+防沉迷系统。使用时机：需要后台监控手机状态、限制应用使用时长、自动锁应用、事件驱动弹窗提醒。| Android background monitoring with anti-addiction. Use when: background phone monitoring, app time limits, auto force-stop, event-driven notifications needed.
 ---
 
 # Android Monitor — Claude Code Skill
