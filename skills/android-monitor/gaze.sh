@@ -25,7 +25,13 @@ collect_state() {
     local screen=$(adb_sh dumpsys power 2>/dev/null | grep -oP 'mWakefulness=\K\w+' || echo "unknown")
     local steps=-1
     [[ -f "$HEALTH_FILE" ]] && steps=$(python3 -c "import json; d=json.load(open('$HEALTH_FILE')); print(d.get('steps_total',-1))" 2>/dev/null || echo -1)
-    local fg_app=$(adb_sh dumpsys activity activities 2>/dev/null | grep -oP 'topResumedActivity=ActivityRecord\{[^ ]+ \S+ \K[^ /]+' | head -1 || echo "unknown")
+    # Multi-OEM foreground app detection: AOSP → MIUI → generic fallback
+    local fg_app=""
+    local dumpsys_out=$(adb_sh dumpsys activity activities 2>/dev/null)
+    fg_app=$(echo "$dumpsys_out" | grep -oP '(topResumedActivity|mResumedActivity|mFocusedActivity)=ActivityRecord\{[^ ]+ \S+ \K[^ /]+' | head -1)
+    [[ -z "$fg_app" ]] && fg_app=$(adb_sh dumpsys activity top 2>/dev/null | grep -oP 'ACTIVITY [^ ]+ \K[^/]+' | head -1)
+    [[ -z "$fg_app" ]] && fg_app=$(adb_sh dumpsys window windows 2>/dev/null | grep -oP 'mCurrentFocus=\S+\s+\K[^}/]+' | head -1)
+    [[ -z "$fg_app" ]] && fg_app="unknown"
     local battery=$(adb_sh dumpsys battery 2>/dev/null | grep -oP 'level: \K\d+' || echo -1)
     local last_msg_ts=0
     if [[ -d "$SESSION_DIR" ]]; then

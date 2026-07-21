@@ -39,6 +39,17 @@
 
 ## 准备工作
 
+> ⚠️ **兼容性声明：本项目仅支持 Android 系统（含 MIUI、ColorOS、OriginOS、One UI 等基于 AOSP 的定制 ROM）。**
+>
+> **不支持：**
+> - ❌ **鸿蒙 NEXT（HarmonyOS 5.0+）**：纯血鸿蒙移除了 ADB，改用 hdc 工具，本项目所有技能无法运行。鸿蒙 3.x/4.x 仍含 AOSP 兼容层，基础功能可用但 `dumpsys activity` 在 EMUI 12+ 已被屏蔽。
+> - ❌ **iOS**：完全不兼容。需要 Mac + Xcode + 越狱或其他方案。
+>
+> **部分支持：**
+> - ⚠️ **小米 MIUI/HyperOS**：需[手动应用修复](#小米-miui--hyperos-修复)（前台 App 检测字段名不同）。背景进程限制极严（5/5），须关闭电池优化+自启动+锁定最近任务。
+> - ⚠️ **华为 EMUI 12+/鸿蒙 3.x/4.x**：`dumpsys activity` 被屏蔽，监控功能受限。无线调试需额外开启"仅充电模式下允许 ADB 调试"。
+> - ✅ **vivo OriginOS、Oppo ColorOS、Samsung One UI、Pixel AOSP**：全部功能正常。详见 [OEM 兼容性矩阵](skills/android-monitor/SKILL.md#oem-compatibility-matrix)。
+
 - Android 6.0+（dumpsys usagestats 需要 API 23；基础功能 API 21/Android 5.0 可用）
 - [Shizuku](https://shizuku.rikka.app/) 已安装
 - Termux（F-Droid：[清华镜像](https://mirrors.tuna.tsinghua.edu.cn/fdroid/repo/)）
