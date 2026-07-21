@@ -51,7 +51,7 @@ adb shell content insert --uri content://com.android.calendar/reminders \
 
 `minutes=0` → alarm fires at event start time (闹钟模式).
 `minutes=1440` → alarm fires 1 day before (提前提醒).
-`method=1` → standard notification alert.
+`method=0` → 闹钟提醒（响铃+振动）。`method=1` → 静默通知栏提示。
 
 ## Python Helper
 
