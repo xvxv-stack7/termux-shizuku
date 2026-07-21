@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## v0.5.0 (2026-07-21)
+
+### 新增
+- **双通道 Shell 架构**：`sh_cmd()` 自动检测 Shizuku rish → ADB fallback，免 WiFi 也能监控。不配 Shizuku 也能用 ADB。
+- **left_chat 事件**：从微信/Termux 切到任意 app 时触发，最多 63 秒延迟
+- **random_glance 事件**：3% 概率随机触发，最少 30 分钟间隔，AI 自由决定说什么
+- **多 OEM 前台 App 检测**：一层回退三层兜底（AOSP/MIUI/generic），小米不再特殊
+- **小米 MIUI/HyperOS 修复指南**：手动设置步骤 + fix-termux-limits 脚本
+- **OEM 兼容性矩阵**：6 大厂商 13 条命令逐条标注兼容状态
+
+### 修复
+- TUTORIAL.md 7 个函数名全部对齐 adb-skills.sh
+- README "小米修复"断链补充完整章节
+- 传感器计数修正（43 个在 vivo S19 检测到，文档覆盖 26 个常见传感器）
+- 技能名称与 SKILL.md frontmatter 一致（android-sensors / sms-monitor）
+
 ## v0.4.1 (2026-07-21)
 
 ### 新增
