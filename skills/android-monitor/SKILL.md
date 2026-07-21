@@ -128,6 +128,7 @@ Called automatically by gaze.sh every loop — no separate process needed.
 | `app_limit.sh` | Usage tracker + limiter |
 | `app_limit_config.json` | Per-app daily minute limits |
 | `sensors/SKILL.md` | 43-sensor reference catalog |
+| `sms/SKILL.md` | SMS inbox polling via ADB content provider |
 | `gaze_state.json` | Current device snapshot (written by gaze.sh) |
 | `gaze_trigger.json` | Latest event trigger (consumed by Monitor) |
 | `sentinel.log` | Event log |
@@ -147,6 +148,65 @@ Called automatically by gaze.sh every loop — no separate process needed.
 - Monitor pushes only when trigger updates (~3–6 events/hour after dedup)
 - Anti-addiction enforcement and fallback notifications run entirely in bash
 - No CronCreate — Monitor is event-driven, not time-polled
+
+## Design: Why Bash Polling?
+
+The 60-second polling loop in gaze.sh looks naive compared to modern event-driven architectures (inotify, Android BroadcastReceiver, AccessibilityService). It's a deliberate choice based on Android's constraints:
+
+### The Problem
+Android does not expose foreground-app-change events or sensor streams to command-line tools. The alternatives all hit walls:
+
+| Approach | Why It Fails |
+|---|---|
+| **inotify** | No filesystem event fires when the user switches apps. `/proc` and `/sys` don't reflect Activity Manager state changes. |
+| **BroadcastReceiver** | Requires a Java/Kotlin APK with `PACKAGE_USAGE_STATS` permission. Can't be triggered from Termux shell scripts. |
+| **AccessibilityService** | Needs a signed APK + user consent via Settings. Overkill for a shell-script monitoring system. |
+| **logcat tail** | `logcat -s ActivityManager` can stream app-switch events, but logcat output is vendor-specific, rate-limited, and pruned by Android. Not reliable enough for a persistent daemon. |
+| **UsageStatsManager API** | Only accessible via Java/Kotlin. No command-line bridge without a helper APK or Shizuku. |
+
+### The Solution
+`dumpsys` is the only universal, permission-free interface that exposes real-time Activity Manager state from the shell. The trade-off:
+
+- **Cost**: One `dumpsys activity activities` call per loop (~200ms, negligible CPU)
+- **Gain**: Works on every Android device without APK installation, root, or Accessibility consent
+- **Compromise**: 60s polling is the floor for reliability — lower intervals risk dumpsys contention and battery drain
+
+### The Bridge to Claude Code
+Even with efficient bash polling, piping raw events into Claude Code would burn tokens on noise. The two-layer filter solves this:
+
+```
+gaze.sh (bash, always-on)
+  → dedup + throttle (same event ≤ 1/10min, binge ≤ 1/day/app)
+  → writes 5-field trigger only on meaningful state changes
+  → Monitor (Claude Code hook, session-scoped)
+    → AI generates custom notification only when trigger fires
+```
+
+The Monitor hook adds near-zero token overhead when idle — it only pushes when `gaze_trigger.json` actually changes. This is the key insight: **bash handles the constant monitoring so Claude Code only pays for the interesting moments.**
+
+## Android Version Compatibility
+
+| Feature | Min API | Notes |
+|---|---|---|
+| `dumpsys activity activities` | 21 (5.0) | Core state query. Stable across all versions. |
+| `dumpsys power` | 21 (5.0) | `mWakefulness` field name varies by OEM. Test on target device. |
+| `dumpsys battery` | 21 (5.0) | Universal. |
+| `dumpsys sensorservice` | 21 (5.0) | Sensor count/names vary by OEM. 43 on vivo S19 (API 35), ~20-30 typical. |
+| `dumpsys usagestats` | 23 (6.0) | Required for sleep-analyze. Requires `--user 0` on some devices. |
+| `am force-stop` | 21 (5.0) | Anti-addiction enforcement. Universal. |
+| `termux-notification` | — | Requires termux-api package. Independent of Android version. |
+| `input keyevent 3` | 21 (5.0) | Home key simulation. Works without Accessibility. |
+| Shizuku `rish` | 24 (7.0) | Optional: higher-privilege shell for some OEMs where adb is restricted. |
+| vivo_activity sensor | 31+ (12+) | Vendor-specific. Not available on all devices. |
+
+**Minimum target**: Android 6.0 (API 23) for full functionality. Android 5.0 (API 21) works with reduced features (no usagestats).
+
+**OEM quirks**: Huawei blocks `dumpsys activity` in EMUI 12+. Xiaomi throttles background dumpsys calls on MIUI 14+. Samsung's `mWakefulness` is under `mWakefulness=` (no regex issue, just note the field exists). Always test on the target device.
+
+## Sub-skills
+
+- **[Sensors Reference](sensors/SKILL.md)** — 43-sensor catalog with composite inference patterns
+- **[SMS Monitor](sms/SKILL.md)** — SMS inbox polling + content forwarding via ADB
 
 ## Customization
 
