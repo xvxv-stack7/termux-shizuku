@@ -1,132 +1,106 @@
 ---
 name: calendar-alarm
-description: 日历事件+提醒(闹钟模式)。使用时机：用户提到时间安排/计划/日程——"下午三点上课"/"8月15去北京"/"明天记得XX"——主动写入系统日历并设提醒。| Calendar events with reminders (alarm mode). Use when: user mentions time plans, schedules, appointments — proactively insert into system calendar with alarm.
+description: 日历事件+闹钟提醒。使用时机：用户提到时间安排/计划——"下午三点上课"/"8月15去北京"/"明天记得XX"——主动设日历或闹钟。| Calendar events + alarm reminders. Use when: user mentions time plans, schedules — proactively set calendar events or alarms.
 ---
 
-# Calendar Alarm — Sub-skill of android-monitor
+# Calendar & Alarm — Sub-skill of android-monitor
 
-Insert calendar events with reminders via ADB `content` commands. The Android system calendar handles the actual alarm/notification natively — no separate alarm app needed.
+Two-tier time management: **calendar events** for future dates (notification reminder), **CronCreate alarm** for same-day exact times (rings with sound). System calendar content provider handles the event storage; Claude Code CronCreate handles the real audible alarm.
 
 ## Proactive Behavior (for Claude Code)
 
-When the user mentions time-related plans in conversation, parse the intent and act without being asked:
+When the user mentions time-related plans, parse the intent and act without being asked:
 
-| User says | Action |
-|---|---|
-| "下午三点上课" | Insert today 15:00 event + 0-min reminder |
-| "明天早上八点开会" | Insert tomorrow 08:00 event + 0-min reminder |
-| "8月15号去北京" | Insert Aug 15 all-day event + 1440-min reminder (day before) |
-| "下周五之前交报告" | Insert next Friday 09:00 event + 60-min reminder |
-| "记得晚上给老妈打电话" | Insert today 20:00 event + 0-min reminder |
+| User says | Action | Method |
+|---|---|---|
+| "下午三点上课" | Today 14:45 alarm | CronCreate + termux-notification --sound |
+| "明天早上八点开会" | Tomorrow 07:45 alarm | CronCreate + termux-notification --sound |
+| "8月15号去北京" | Aug 15 calendar event | content insert event + reminder |
+| "下周五交报告" | Deadline calendar event | content insert + 1-day reminder |
+| "记得晚上给老妈打电话" | Today 20:00 alarm | CronCreate + termux-notification --sound |
 
 **Decision logic:**
-- Time within 24h with specific hour → same-day event, reminder at event time (minutes=0)
-- Future date → that date, reminder 1 day before (minutes=1440) or at event time
-- Vague deadline ("下周之前") → insert on the deadline date, reminder 1 day before
-- After inserting, briefly mention it: "已加到日历，到时候提醒你"
+- Specific time within 24h → CronCreate durable alarm (rings with sound + vibration)
+- Future date beyond tomorrow → Calendar event with reminder (notification at event time)
+- Vague deadline → Calendar event, reminder 1 day before (minutes=1440)
 
-## How It Works
+## Approach 1: CronCreate Alarm (Rings — for same-day)
 
-Two-step insert into Android's calendar content provider:
+Use Claude Code's built-in `CronCreate` with `durable: true`. At the trigger time, fire a termux-notification with sound:
 
-### Step 1: Insert event
+```
+CronCreate({
+  cron: "<minute> <hour> <day> <month> *",
+  prompt: "termux-notification --id alarm-$(date +%s) --title '⏰ <title>' --content '<detail>' --priority max --sound --vibrate '1000,300,1000,300,1000' --ongoing",
+  recurring: false,
+  durable: true
+})
+```
+
+**Why this works:** `durable: true` persists to disk — survives session restarts. `--sound --vibrate --ongoing` makes it ring like a real alarm. `--ongoing` keeps it visible until dismissed.
+
+**Limitation:** Requires Claude Code daemon to be running at trigger time.
+
+## Approach 2: Calendar Event (Notification — for future dates)
+
+Insert events into Android's system calendar. The system calendar app provides notification reminders — useful for dates and planning, but reminder is a **notification, not an audible alarm**.
+
+### Insert event
 
 ```bash
 adb shell content insert --uri content://com.android.calendar/events \
   --bind title:s:"Event Title" \
-  --bind dtstart:l:<start_timestamp_ms> \
-  --bind dtend:l:<end_timestamp_ms> \
+  --bind dtstart:l:<start_ms> \
+  --bind dtend:l:<end_ms> \
   --bind eventTimezone:s:"Asia/Shanghai" \
   --bind calendar_id:i:1
 ```
 
-### Step 2: Add reminder (alarm mode)
+### Add reminder
 
 ```bash
+# method=0 = alert (may vary by device; method=1 = silent fallback)
 adb shell content insert --uri content://com.android.calendar/reminders \
-  --bind event_id:i:<event_id_from_step1> \
-  --bind minutes:i:<minutes_before_event> \
-  --bind method:i:1
+  --bind event_id:i:<event_id> \
+  --bind minutes:i:0 \
+  --bind method:i:0
 ```
 
-`minutes=0` → alarm fires at event start time (闹钟模式).
-`minutes=1440` → alarm fires 1 day before (提前提醒).
-`method=0` → 闹钟提醒（响铃+振动）。`method=1` → 静默通知栏提示。
+`minutes=0` → fires at event start. `minutes=1440` → fires 1 day before.
 
-## Python Helper
+### Get event ID after insert
+
+`content insert` returns empty on some devices. Use the unique title approach:
 
 ```python
-#!/data/data/com.termux/files/usr/bin/python3
-"""calendar_alarm.py — Insert calendar event with alarm reminder."""
-import subprocess, re, time, sys
+import subprocess, re
 
-def adb(cmd):
-    r = subprocess.run(['adb', 'shell'] + cmd, capture_output=True, text=True)
-    return r.stdout
+title = f"XK-{int(time.time())}"
+subprocess.run(['adb', 'shell', 'content', 'insert', '--uri',
+    'content://com.android.calendar/events',
+    '--bind', f'title:s:{title}', ...], capture_output=True)
 
-def add_event(title, dt_start_ms, dt_end_ms, minutes_before=0):
-    """Insert calendar event + reminder. Returns event_id or None."""
-    # Insert event
-    adb(['content', 'insert', '--uri', 'content://com.android.calendar/events',
-         '--bind', f'title:s:{title}',
-         '--bind', f'dtstart:l:{dt_start_ms}',
-         '--bind', f'dtend:l:{dt_end_ms}',
-         '--bind', 'eventTimezone:s:Asia/Shanghai',
-         '--bind', 'calendar_id:i:1'])
-    
-    # Get newest event ID
-    out = adb(['content', 'query', '--uri', 'content://com.android.calendar/events',
-                '--projection', '_id:title'])
-    ids = re.findall(r'_id=(\d+)', out)
-    eid = int(ids[-1]) if ids else None
-    
-    if eid:
-        # Add reminder
-        adb(['content', 'insert', '--uri', 'content://com.android.calendar/reminders',
-             '--bind', f'event_id:i:{eid}',
-             '--bind', f'minutes:i:{minutes_before}',
-             '--bind', 'method:i:1'])
-    
-    return eid
+out = subprocess.run(['adb', 'shell', 'content', 'query',
+    '--uri', 'content://com.android.calendar/events',
+    '--projection', '_id:title'], capture_output=True, text=True).stdout
 
-if __name__ == '__main__':
-    # Usage: python3 calendar_alarm.py "上课" "2026-07-22 15:00" 0
-    import argparse
-    p = argparse.ArgumentParser()
-    p.add_argument('title')
-    p.add_argument('datetime')  # YYYY-MM-DD HH:MM
-    p.add_argument('--minutes-before', type=int, default=0)
-    args = p.parse_args()
-    
-    from datetime import datetime
-    dt = datetime.strptime(args.datetime, '%Y-%m-%d %H:%M')
-    ts_ms = int(dt.timestamp() * 1000)
-    
-    eid = add_event(args.title, ts_ms, ts_ms + 3600000, args.minutes_before)
-    print(f'Event {eid}: {args.title} at {args.datetime}' if eid else 'Failed')
+m = re.search(r'_id=(\d+), title=' + re.escape(title), out)
+event_id = int(m.group(1)) if m else None
 ```
 
-## Delete Events
+### Delete
 
 ```bash
-# Delete by ID
 adb shell content delete --uri content://com.android.calendar/events --where "_id=<id>"
 adb shell content delete --uri content://com.android.calendar/reminders --where "event_id=<id>"
 ```
 
-## Query Upcoming
+## Why Calendar Reminders Don't Ring
 
-```bash
-# Events starting from now
-adb shell content query --uri content://com.android.calendar/events \
-  --projection _id:title:dtstart \
-  --where "dtstart > <now_timestamp_ms>" \
-  --sort "dtstart ASC"
-```
+Android calendar reminders are controlled by the calendar app's **notification channel** settings. Even with `method=0`, the system treats them as notifications — whether they make sound depends on the user's notification settings for the calendar app. This is an Android limitation, not a bug in the insert commands.
 
-## Known Limitations
+For an actual audible alarm, use Approach 1 (CronCreate + termux-notification --sound).
 
-- **calendar_id varies**: `calendar_id=1` is the default local calendar on most devices. Verify with `content query --uri content://com.android.calendar/calendars --projection _id:_sync_account` if insert fails.
-- **No delete confirmation**: `content delete` silently returns. Double-check with query after deleting.
-- **vivo-specific**: `content insert` returns empty on success — don't rely on return value. Always query for the newest event ID after insertion.
-- **hasAlarm field**: Set automatically by the system when a reminder row exists. Do not manually set on insert.
+## Tested
+
+vivo S19 (OriginOS/Android 16): `content://com.android.calendar` read/write verified. `calendar_id=1` is the default local calendar. `method=0` and `method=1` both produce notification-only reminders. `termux-notification --sound --vibrate --ongoing` produces a full alarm experience.
