@@ -79,8 +79,8 @@ def main():
     if not event and ct - pt > 9000 and cs == "Asleep":
         event = "long_silence"
 
-    # 10. random_glance — 3% probability
-    if not event and random.random() < 0.03:
+    # 10. random_glance — 3% probability, only when awake
+    if not event and cs == "Awake" and random.random() < 0.03:
         event = "random_glance"
 
     # 11. music_moment — A2DP headphones + daytime + not in media app + 2% probability
