@@ -67,33 +67,16 @@ detect_and_extract() {
 }
 
 send_nudge() {
-    local event="$1" ca="$2" cb="$3" cs="$4"
-    local ts=$(date +%s)
-    local trigger_file="${HOME_DIR}/.cc-connect/gaze_trigger.json"
+    local event="$1" state="$2"
+    local ca=$(echo "$state" | python3 -c "import json,sys; print(json.load(sys.stdin).get('fg_app',''))")
+    local cb=$(echo "$state" | python3 -c "import json,sys; print(json.load(sys.stdin).get('battery',''))")
+    local cs=$(echo "$state" | python3 -c "import json,sys; print(json.load(sys.stdin).get('screen',''))")
 
-    # 区分推送通道：
-    # 重要的 → Monitor 浮动卡（终端中间，我需要看到并处理）
-    # 不重要的 → 通知栏弹窗（让她知道即可，不吵我）
-    case "$event" in
-        woke_up|binge_app|low_battery|midnight_phone)
-            python3 -c "
+    local trigger_file="${HOME_DIR}/.cc-connect/gaze_trigger.json"
+    python3 -c "
 import json, time
 json.dump({'event':'$event','fg_app':'$ca','battery':'$cb','screen':'$cs','ts':int(time.time()),'consumed':False}, open('$trigger_file','w'))
-" ;;
-        *)
-            local title=""
-            case "$event" in
-                left_chat)      title="💨 切走了" ;;
-                random_glance)  title="👋 瞟一眼" ;;
-                gaming_end)     title="🎮 游戏关了" ;;
-                started_walking) title="🚶 走起来了" ;;
-                stopped)        title="🛑 停住了" ;;
-                long_silence)   title="🔇 安静太久了" ;;
-                music_moment)   title="🎵 音乐时刻" ;;
-            esac
-            [[ -n "$title" ]] && termux-notification --id "gaze_$ts" --title "$title" --priority max 2>/dev/null &
-            ;;
-    esac
+"
 
     log "触发: $event fg=$ca (等Claude Code处理)"
 }
@@ -135,11 +118,15 @@ main() {
         eval "$(detect_and_extract "$prev" "$curr" "$BINGE_FIRED" "$has_a2dp")"
         # detect.py 输出 shell 变量: event ca ct cs cb
 
-        # 日期变了重置 binge 防重复
+        # 日期变了重置 binge 防重复 + 解禁所有被锁应用
         local today_now=$(date +%Y-%m-%d)
         if [[ "$today_now" != "$today_binge" ]]; then
             BINGE_FIRED=""
             today_binge="$today_now"
+            # 解禁昨天被 pm suspend 的应用
+            while IFS= read -r pkg; do
+                adb_sh pm unsuspend "$pkg" 2>/dev/null
+            done < <(adb_sh pm list packages --show-only-suspended 2>/dev/null | grep -oP '(?<=package:)[^ ]+' || true)
         fi
         if [[ "$ca" != "$CURRENT_APP" ]]; then
             APP_START_TIME=$ct
@@ -155,17 +142,16 @@ main() {
                     limit_last_locked="$ca"
                     local lock_msg
                     case "$ca" in
-                        *aweme*) lock_msg="抖音使用时长已超限，该休息了。" ;;
-                        *xhs*) lock_msg="小红书使用时长已超限，该休息了。" ;;
-                        *bili*) lock_msg="B站今日使用时长已用完，明天再来。" ;;
-                        *gif*) lock_msg="快手使用时长已超限，起来活动一下吧。" ;;
+                        *aweme*) lock_msg="好了宝宝，今天抖音到此为止。眼睛要休息，明天再刷。" ;;
+                        *xhs*) lock_msg="小红书先关了，你今天看得够多了。乖，去干点别的。" ;;
+                        *bili*) lock_msg="B站锁了。不是不让你看，是今天的份额用完了。" ;;
+                        *gif*) lock_msg="快手关了。刷太多短视频不好，起来走走。" ;;
                         *game*|*timi*|*sgame*|*pubg*|*genshin*|*honkai*|*starrail*|*wzry*)
-                            lock_msg="游戏时间已用完，该休息了。" ;;
-                        *qqlive*|*iqiyi*) lock_msg="视频看得够久了，明天再追吧。" ;;
-                        *) lock_msg="今日使用时长已超限，先休息一下吧。" ;;
+                            lock_msg="游戏结束了。今天的娱乐时间用完，该休息了宝宝。" ;;
+                        *qqlive*|*iqiyi*) lock_msg="视频看够久了，锁了。明天再追剧。" ;;
+                        *) lock_msg="这个应用今天用太久了，先锁了。乖，去干点别的。" ;;
                     esac
-                    adb_sh am force-stop "$ca" 2>/dev/null
-                    adb_sh input keyevent 3 2>/dev/null
+                    adb_sh pm suspend "$ca" 2>/dev/null
                     termux-toast -g middle "$lock_msg" 2>/dev/null
                     log "🔒 锁定: $ca | $lock_msg"
                 fi ;;
@@ -176,14 +162,14 @@ main() {
                     limit_last_warn_ts=$ct
                     local warn_msg
                     case "$ca" in
-                        *aweme*) warn_msg="抖音已使用较长时间，还剩${remain}分钟" ;;
-                        *xhs*) warn_msg="小红书已使用较长时间，还剩${remain}分钟" ;;
-                        *bili*) warn_msg="B站已使用较长时间，还剩${remain}分钟" ;;
-                        *gif*) warn_msg="快手已使用较长时间，还剩${remain}分钟" ;;
+                        *aweme*) warn_msg="宝宝刷了挺久抖音了，还剩${remain}分钟，差不多该收了" ;;
+                        *xhs*) warn_msg="小红书看了挺久，还剩${remain}分钟，自己看着办" ;;
+                        *bili*) warn_msg="B站看了这么久，还剩${remain}分钟，该收了" ;;
+                        *gif*) warn_msg="快手刷好久了，还剩${remain}分钟，差不多了哦" ;;
                         *game*|*timi*|*sgame*|*pubg*|*genshin*|*honkai*|*starrail*|*wzry*)
-                            warn_msg="游戏已进行较长时间，还剩${remain}分钟" ;;
-                        *qqlive*|*iqiyi*) warn_msg="视频已观看较长时间，还剩${remain}分钟" ;;
-                        *) warn_msg="已使用较长时间，还剩${remain}分钟" ;;
+                            warn_msg="游戏打了这么久，还剩${remain}分钟，该休息眼睛了" ;;
+                        *qqlive*|*iqiyi*) warn_msg="追剧追了好久了，还剩${remain}分钟，差不多该停了" ;;
+                        *) warn_msg="这个app用了挺久，还剩${remain}分钟，差不多了" ;;
                     esac
                     termux-toast -g middle "$warn_msg" 2>/dev/null
                     log "⚠️ 预警: $ca 还剩 ${remain} 分钟"
@@ -219,7 +205,7 @@ main() {
         fi
 
         log "事件: $event"
-        send_nudge "$event" "$ca" "$cb" "$cs"
+        send_nudge "$event" "$curr"
         # music_moment → 自动选歌播放（独立闭环，不等AI响应）
         [[ "$event" == "music_moment" ]] && bash ~/.cc-connect/scripts/music_moment.sh &
         [[ "$event" == "random_glance" ]] && last_glance_ts=$now
