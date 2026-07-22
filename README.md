@@ -66,20 +66,57 @@
 
 ---
 
-## 🔑 关键一步：拿到 Shizuku 连接代码
+## 🔑 关键一步：无线调试 → 回环 → Shizuku
 
-**这一步跳过了后面全废。**
+> **这是整个方案的核心，按顺序来，一步别跳。**
 
-1. 打开 Shizuku App
-2. 点击 **"通过连接电脑启动"**
-3. 屏幕上会显示一段 adb shell 命令，类似：
-   ```bash
-   adb shell sh /storage/emulated/0/Android/data/moe.shizuku.privileged.api/start.sh
-   ```
-4. 把这段命令复制给 Claude Code，或在 Termux 里自己执行
-5. 看到 `Shizuku is running` 后继续
+### 你需要先装好
 
-> 这段代码是跳板的钥匙——拿到他才能让 Shizuku 永久在线。**每次点开都会变，变了就重新执行一次。**
+- [Shizuku](https://shizuku.rikka.app/) 已安装
+- Termux（F-Droid：[清华镜像](https://mirrors.tuna.tsinghua.edu.cn/fdroid/repo/)）已安装
+
+### 第一步：开无线调试
+
+设置 → 开发者选项 → **无线调试** → 打开 → 点进去看，会显示：
+
+- `IP 地址和端口`（如 `192.168.1.5:38435`）
+- `配对码`（6 位数字）
+
+### 第二步：配对 + 连接（跳板）
+
+在 Termux 里：
+
+```bash
+adb pair 192.168.1.5:38435 123456   # 用你看到的配对码
+adb connect 192.168.1.5:38435       # 连上无线调试端口
+```
+
+> 此时 adb 已通过 WiFi 连上手机。**无线调试只是跳板**——下一步就切到回环，不再需要它。
+
+### 第三步：切 adbd 到回环
+
+```bash
+adb tcpip 5555                     # 让 adbd 监听固定 TCP 端口
+adb connect 127.0.0.1:5555         # 回环自连——手机自己连自己
+```
+
+### 第四步：启动 Shizuku
+
+```bash
+adb -s 127.0.0.1:5555 shell sh /storage/emulated/0/Android/data/moe.shizuku.privileged.api/start.sh
+```
+
+### 第五步：验证
+
+```bash
+rish -c 'whoami'    # 输出 shell 即成功
+```
+
+> ✅ 从这一刻起，**关 WiFi、开飞行模式，连接不中断。** 127.0.0.1 不走任何网络栈，手机自己连自己。
+>
+> 此时开发者选项里会显示两个已连接设备：`127.0.0.1:5555`（你自己）和 `Shizuku`。这是正常的。
+>
+> ⚠️ 手机重启后无线调试端口会变，重跑第二步到第四步即可。或执行 `bash bootstrap.sh` 自动完成，再或者配 `boot/startup.sh` 开机自启。
 
 ---
 
