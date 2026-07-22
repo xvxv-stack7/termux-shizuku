@@ -121,8 +121,9 @@ if [ -z "$URL" ]; then
     exit 1
 fi
 
-# 后台播放
-nohup /data/data/com.termux/files/usr/bin/mpv --no-video --volume=60 "$URL" > /dev/null 2>&1 &
+# 后台播放：下载后用 termux-media-player（mpv 在 Android 上无音频权限）
+TMP_SONG="/data/data/com.termux/files/usr/tmp/current_song.mp3"
+curl -s -o "$TMP_SONG" "$URL" 2>/dev/null && termux-media-player play "$TMP_SONG" 2>/dev/null &
 
 # 记录
 echo "$NOW" > "$LAST_FILE"
