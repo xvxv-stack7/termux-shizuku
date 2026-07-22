@@ -6,7 +6,7 @@
 
 > 🔑 **核心突破：USB 锚点方案**——用一次无线调试把 adbd 切到 TCP 5555，走 127.0.0.1 回环。之后关 WiFi、开飞行模式、手机自己连自己，Shizuku 永久在线。**真正的免电脑免网络，一条 adb tcpip 命令搞定。**
 
-> 🎯 **还没装 Claude Code？** 先去 [android-claude-wechat](https://gitee.com/xvxv663/android-claude-wechat) —— 一条命令装好 Claude Code（可选接微信）。装完回来，本仓库让你的 Claude 真正摸到手机。**两个仓库是上下游：先装那个，再接这个。**
+> 🎯 **还没装 Claude Code？** 先去 [android-claude-wechat](https://gitee.com/xvxv663/android-claude-wechat) —— 一条命令装好 Claude Code 和运行环境。装完回来，本仓库让你的 Claude 真正摸到手机。**两个仓库是上下游：先装那个，再接这个。**
 
 [![Gitee](https://img.shields.io/badge/Gitee-国内下载-c71d23?logo=gitee)](https://gitee.com/xvxv663/termux-shizuku)
 [![GitHub](https://img.shields.io/badge/GitHub-国际版-181717?logo=github)](https://github.com/xvxv-stack7/termux-shizuku)
