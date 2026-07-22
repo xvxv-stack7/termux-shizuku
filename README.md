@@ -124,6 +124,14 @@ check_all          # 全状态快照
 
 整件事没有定时器，没有预设。他读了传感器、读了屏幕状态、读了你打的字。然后自己做的判断。
 
+![Shell 日历日程](assets/calendar-shell.jpg)
+
+*Shell 通过 Shizuku 直接写入系统日历——"取快递"自动加了提醒。*
+
+![Shell 冻结应用](assets/app-frozen-shell.jpg)
+
+*刷太久？应用被停了。不是因为你设过限制，是他自己判断的。*
+
 ---
 
 ## 🤖 Claude Code 用户看这里
